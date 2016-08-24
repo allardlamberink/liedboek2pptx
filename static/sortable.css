@@ -1,0 +1,31 @@
+header, section {
+display: block;
+}
+
+.sortable {
+/*margin: auto;*/
+padding: 0;
+width: 310px;
+-webkit-touch-callout: none;
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+}
+
+.sortable li {
+list-style: none;
+border: 1px solid #CCC;
+background: #F6F6F6;
+font-family: "Tahoma";
+color: #1C94C4;
+margin: 5px;
+padding: 5px;
+height: 22px;
+}
+
+li.sortable-placeholder {
+border: 1px dashed #CCC;
+background: none;
+}

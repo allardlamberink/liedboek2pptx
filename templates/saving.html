@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block body %}
+
+{% if introtekst %}
+<h1>{{ introtekst }}!</h1>
+{% else %}
+<h1>Saving file...</h1>
+{% endif %}
+
+{% endblock %}

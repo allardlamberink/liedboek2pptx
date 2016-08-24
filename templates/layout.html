@@ -1,0 +1,19 @@
+<!doctype html>
+<head>
+{% block head %}
+	<title>Hervgembeerzerveld powerpoint generator</title>
+	<script type="text/javascript" src="{{url_for('static', filename='pptx_gen.js')}}"></script>
+	<script type="text/javascript" src="{{url_for('static', filename='jquery-3.0.0.min.js')}}"></script>
+{% endblock %}
+</head>
+
+{% with messages = get_flashed_messages() %}
+	{% if messages %}
+		<ul class=flashes>
+		{% for message in messages %}
+			<li>{{ message }}</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+{% endwith %}
+{% block body %}{% endblock %}

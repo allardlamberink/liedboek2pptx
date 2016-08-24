@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block body %}
+
+{% if errormsg %}
+<h1>{{ errormsg }}!</h1>
+{% endif %}
+
+{% if introtekst %}
+<h1>{{ introtekst }}!</h1>
+{% else %}
+<h1>Upload new file...</h1>
+{% endif %}
+
+<form action="/upload" method=post enctype=multipart/form-data>
+<p><input type=file name=file>
+<input type=submit value=Upload>
+</form>
+
+
+{% endblock %}
