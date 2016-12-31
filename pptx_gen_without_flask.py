@@ -1,8 +1,3 @@
-''' "pptx-generator v0.1"
-    initial release date: 2016-06-19
-    copyright (c) 2016 by A.D. Lamberink
-'''
-
 import zipfile
 import StringIO
 from pptx import Presentation
@@ -29,7 +24,7 @@ def song_couplets2arr(filenamelist):
 					song_couplets[title_text_arr[1]] = [title_text_arr[4]]
 			else:  # 1 couplet
 				song_couplets[title_text_arr[1]] = ['1']
-		song_couplets[title_text_arr[1]].sort(key=int)
+	song_couplets[title_text_arr[1]].sort(key=int)
 	return song_couplets
 
 def get_song_title_text(filename, song_couplets):
@@ -64,8 +59,6 @@ def create_title_slide(prs, titel_tekst, sub_titel_tekst):
 	subtitle.text = sub_titel_tekst
 
 def create_song_slide(prs, song_title, song_img_data):
-	#import pdb
-	#pdb.set_trace()
 	song_slide_layout = prs.slide_layouts[1]  # layout 1 = titel + object
 	slide = prs.slides.add_slide(song_slide_layout)
 
@@ -122,10 +115,10 @@ def create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst):
 # todo: read these parameters from the command-line
 
 def start():
-	voorganger = 'Ds. J.M. Peschar'
-	datum_tekst = 'zondag 21 augustus 2016'
-	scripture_fragments = ['Mattheus 5: 13-16']
-	titel_tekst = 'Welkom in de ochtenddienst'
+	voorganger = 'Ds. J.H. Adriaanse'
+	datum_tekst = 'zondag 25 december 2016'
+	scripture_fragments = ['Lukas 2: 1-20']
+	titel_tekst = 'Welkom! Eerste kerstdag 2016'
 	sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
 	create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
 	return
@@ -139,7 +132,7 @@ def create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_ti
 	else:
 		exit(liedboek_file + ' is not readable')
 	
-	filenamelist = zf.namelist()
+	filenamelist = sorted(zf.namelist()) # the zipfile contains files in unspecified order, so manual sort is necessary
 	
 	prs = create_pptx(pptx_template_file)
 	create_title_slide(prs, titel_tekst, sub_titel_tekst)
