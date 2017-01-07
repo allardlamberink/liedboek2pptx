@@ -30,7 +30,7 @@ def song_couplets2arr(filenamelist):
 def get_song_title_text(filename, song_couplets):
 	title_text = 'Lied '
 	title_text_arr = filename.split('-')
-	if int(title_text_arr[1]) <= 150:
+	if title_text_arr[1].isdigit() and int(title_text_arr[1]) <= 150:
 		title_text = "Psalm "
 	title_text += title_text_arr[1] + ': '
 
@@ -78,6 +78,23 @@ def create_song_slide(prs, song_title, song_img_data):
 	pic.height=pic.height/3
 	pic.width=pic.width/3
 
+
+def create_scripture_slide(prs, scripture_title, scripture_text):
+	scripture_slide_layout = prs.slide_layouts[1]  # layout 1 = titel + object
+	slide = prs.slides.add_slide(scripture_slide_layout)
+
+	# set scripture title
+	title = slide.shapes.title
+	title.text = scripture_title
+
+	# set scripture text
+	subtitle = slide.placeholders[1]
+	subtitle.top = Cm(1.94)
+	subtitle.left = Cm(1.00)
+	subtitle.width = prs.slide_width - subtitle.left - Cm(0.50)
+	subtitle.height = prs.slide_height - subtitle.top - Cm(0.50)
+	subtitle.text += scripture_text + '\n'
+
 def create_intermediate_slide(prs, tekst):
 	interim_slide_layout = prs.slide_layouts[3]  # layout 3 = intermediate_slide
 	slide = prs.slides.add_slide(interim_slide_layout)
@@ -102,22 +119,21 @@ def create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst):
 	subtitle = slide.placeholders[1]
 	for song_num in song_couplets.keys():
 		title_text = "Lied "
-		if int(song_num) <= 150: 
+		if song_num.isdigit() and int(song_num) <= 150: 
 			title_text = "Psalm "
 		title_text += song_num + ': '
 		for c_idx in range(0, len(song_couplets[song_num])):
 			title_text += song_couplets[song_num][c_idx] + (', ' if  c_idx < len(song_couplets[song_num])-1 else '')
 		subtitle.text += title_text + '\n'
 	for idx in range(0, len(scripture_fragments)):
-		subtitle.text += 'Schriftlezing {0}: {1}'.format(idx+1, scripture_fragments[idx])
+		subtitle.text += '\nSchriftlezing {0}: {1}'.format(idx+1, scripture_fragments[idx])
 
-# todo: voorschriftlezingen : interm dia + index dia met als tekst <schriftlezing hier>
 # todo: read these parameters from the command-line
 
 def start():
 	voorganger = 'Ds. J.H. Adriaanse'
 	datum_tekst = 'zondag 25 december 2016'
-	scripture_fragments = ['Lukas 2: 1-20']
+	scripture_fragments = ['Lukas 2: 1-20', 'Romeinen 10: 5-6']
 	titel_tekst = 'Welkom! Eerste kerstdag 2016'
 	sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
 	create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
@@ -139,6 +155,10 @@ def create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_ti
 	
 	song_couplets = song_couplets2arr(filenamelist)
 	create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst)
+	idx = 1
+	for scripture_fragment in scripture_fragments:
+		create_scripture_slide(prs, "Schriftlezing {0}: {1}".format(idx, scripture_fragment), "<tekst van {0} hier plakken>".format(scripture_fragment))
+		idx += 1
 	
 	standaard_ochtenddienst_layout = ['titel', 'liturgie', 'lied1', 'Welkom en afkondigingen', 
 				'Stil gebed\n-\nVotum en Groet', 'lied2', 'Lezing van Gods gebod',
