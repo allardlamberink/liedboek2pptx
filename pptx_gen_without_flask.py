@@ -1,8 +1,12 @@
+import sys
 import zipfile
 import StringIO
 from pptx import Presentation
 from pptx.util import Cm
 from PIL import Image
+import os
+from flask import Flask, request, redirect, url_for, flash, render_template, make_response
+from werkzeug.utils import secure_filename
 
 # filename structuur binnen zipfile:
 # meerdere coupletten:
@@ -130,11 +134,12 @@ def create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst):
 
 # todo: read these parameters from the command-line
 
-def start():
-	voorganger = 'Ds. J.H. Adriaanse'
-	datum_tekst = 'zondag 25 december 2016'
-	scripture_fragments = ['Lukas 2: 1-20', 'Romeinen 10: 5-6']
-	titel_tekst = 'Welkom! Eerste kerstdag 2016'
+###################  command_line part ####################
+def start_cmdline():
+	voorganger = 'Ds. F. Schipper'
+	datum_tekst = 'zondag 15 januari 2017'
+	scripture_fragments = ['Marcus: 1-11',]
+	titel_tekst = 'Welkom!'
 	sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
 	create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
 	return
@@ -194,4 +199,130 @@ def create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_ti
 	print "powerpoint created..."
 	zf.close()
 
-start()
+
+def start_web():
+	print "this is start_web"
+
+
+
+
+
+
+###################  web part ####################
+UPLOAD_FOLDER = '/tmp/pytest'
+ALLOWED_EXTENSIONS = set(['zip'])
+
+def allowed_file(filename):
+	return '.' in filename and \
+		filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+app = Flask(__name__)
+app.secret_key = 'some_secret'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
+
+
+#@app.route('/')
+#def hello_world():
+#   return 'Hello, World!'
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+	filenamelist = get_filenamelist()
+	song_couplets = song_couplets2arr(filenamelist)
+	liturgielijst = []
+	for song, couplets in song_couplets.iteritems():
+		#for couplet in couplets:  # todo: per couplet sorteren mogelijk maken...
+		coupletstr = ', '.join(couplets)
+		liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
+	#liturgielijst = song_couplets   #{ 'title': 'allard', 'Age': 7 }
+	return render_template('index.html', name='test van Allard',liturgielijst=liturgielijst)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	error = None
+	if request.method == 'POST':
+		if request.form['username'] != 'admin' or \
+			request.form['password'] != 'secret':
+			error = 'Invalid credentials'
+		else:
+			flash('You were successfully logged in')
+			return redirect(url_for('index'))
+	return render_template('login.html', error=error)
+
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+	error=None
+	if request.method == 'POST':
+		# check if the post request has the file part
+		if 'file' not in request.files:
+			flash('No file part')
+			return redirect(request.url)
+		file = request.files['file']
+		# if user does not select file, browser also
+		# submit a empty part without filename
+		if file.filename == '':
+			flash('No selected file')
+			return redirect(request.url)
+		if file:
+			if allowed_file(file.filename):
+				filename = secure_filename(file.filename)
+				file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+				#return redirect(url_for('upload_file', filename=filename))
+				flash('upload=suc6')
+				return redirect(url_for('upload_file', filename=filename))
+			else:
+				flash('Invalid filetype (only .zip is allowed)')
+
+	return render_template('upload.html', introtekst='Upload nieuw bestand', errormsg=error)
+
+
+
+@app.route('/pptx_summary', methods=['POST'])
+def pptx_summary():
+	if request.method == 'POST':
+		finalliturgielijst = []
+		# check if the post request has the file part
+		if 'liedvolgorde' not in request.form:
+			flash('Geen liederen gevonden')
+		else:
+			liedstr = request.form['liedvolgorde'].split(',')
+			liturgietypestr = request.form['liturgietype']
+			flash('Wel liederen gevonden {0}. Liturgietype={1}'.format(liedstr,liturgietypestr))
+
+		# todo Allard: ga hier verder
+		finalliturgielijst.append(['test3', 'test4'])
+		return render_template('pptxsummary.html', finalliturgielijst=finalliturgielijst)
+
+
+# todo:
+@app.route('/pptx_save', methods=['POST', 'GET'])
+def pptx_save():
+	if request.method == 'POST':
+		# check if the post request has the file part
+		if 'liturgievolgorde' not in request.form:
+			flash('Geen liederen gevonden')
+		else:
+			litstr = request.form['liturgievolgorde'].split(',')
+			flash('Wel liederen gevonden {0}'.format(litstr))
+	else:
+		return render_template('saving.html', introtekst='Saving 5')
+
+	return redirect(request.url)
+
+############################ entry point (main) ####################
+if __name__ == "__main__":
+	arv = sys.argv[1:]
+	if(len(arv)>0):
+		if arv[0] == '-c':  # start command-line version
+			start_cmdline()
+		elif arv[0] == '-w':  # start the webserver version
+			start_web()
+		else:
+			print "invalid argument"
+	else:
+		print "no arguments given! usage: \n  -c (start the command_line version)\n  -w (start the webserver version)"
+
