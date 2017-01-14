@@ -1,3 +1,8 @@
+''' "pptx-generator v0.1"		
+     initial release date: 2016-06-26		
+     copyright (c) 2016 by A.D. Lamberink		
+'''
+
 import sys
 import zipfile
 import StringIO
@@ -7,6 +12,8 @@ from PIL import Image
 import os
 from flask import Flask, request, redirect, url_for, flash, render_template, make_response
 from werkzeug.utils import secure_filename
+
+app = Flask(__name__)
 
 # filename structuur binnen zipfile:
 # meerdere coupletten:
@@ -144,17 +151,27 @@ def start_cmdline():
 	create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
 	return
 
-def create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
-	pptx_template_file = 'template.pptx'
+
+def get_zf():
 	liedboek_file = 'liedboek.zip'
-	
 	if zipfile.is_zipfile(liedboek_file):
 		zf = zipfile.ZipFile(liedboek_file, 'r')
 	else:
 		exit(liedboek_file + ' is not readable')
-	
+	return zf
+
+
+def get_filenamelist(zf):
 	filenamelist = sorted(zf.namelist()) # the zipfile contains files in unspecified order, so manual sort is necessary
-	
+	return filenamelist
+
+
+def create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+	pptx_template_file = 'template.pptx'
+
+	zf = get_zf()
+	filenamelist = get_filenamelist(zf)
+
 	prs = create_pptx(pptx_template_file)
 	create_title_slide(prs, titel_tekst, sub_titel_tekst)
 	
@@ -200,8 +217,6 @@ def create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_ti
 	zf.close()
 
 
-def start_web():
-	print "this is start_web"
 
 
 
@@ -216,7 +231,6 @@ def allowed_file(filename):
 	return '.' in filename and \
 		filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-app = Flask(__name__)
 app.secret_key = 'some_secret'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
@@ -228,7 +242,9 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-	filenamelist = get_filenamelist()
+	zf = get_zf()
+	filenamelist = get_filenamelist(zf)
+	zf.close()
 	song_couplets = song_couplets2arr(filenamelist)
 	liturgielijst = []
 	for song, couplets in song_couplets.iteritems():
@@ -283,6 +299,8 @@ def upload_file():
 
 @app.route('/pptx_summary', methods=['POST'])
 def pptx_summary():
+	import pdb
+	pdb.set_trace()
 	if request.method == 'POST':
 		finalliturgielijst = []
 		# check if the post request has the file part
@@ -294,7 +312,7 @@ def pptx_summary():
 			flash('Wel liederen gevonden {0}. Liturgietype={1}'.format(liedstr,liturgietypestr))
 
 		# todo Allard: ga hier verder
-		finalliturgielijst.append(['test3', 'test4'])
+		#finalliturgielijst.append(['test3', 'test4'])
 		return render_template('pptxsummary.html', finalliturgielijst=finalliturgielijst)
 
 
@@ -313,16 +331,15 @@ def pptx_save():
 
 	return redirect(request.url)
 
+
 ############################ entry point (main) ####################
 if __name__ == "__main__":
-	arv = sys.argv[1:]
+	start_cmdline()
+	'''arv = sys.argv[1:]
 	if(len(arv)>0):
 		if arv[0] == '-c':  # start command-line version
-			start_cmdline()
-		elif arv[0] == '-w':  # start the webserver version
-			start_web()
 		else:
 			print "invalid argument"
 	else:
-		print "no arguments given! usage: \n  -c (start the command_line version)\n  -w (start the webserver version)"
-
+		start_web()
+	'''
