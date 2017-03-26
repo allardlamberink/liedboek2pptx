@@ -1,5 +1,5 @@
-{% extends "layout.html" %}
-
+{# dit is comment #}
+{% extends 'test_base.html' %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.ui.core.min.css') }}" type="text/css" media="screen" charset="utf-8" />
@@ -14,11 +14,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/createpptx.js') }}"></script>
 {% endblock extra_js %}
 
-
-
-{% block body %}
-
-
+{% block main %}
 <form action="/" method="post">
 
 <div id="operations" class="grid_6">
@@ -32,11 +28,5 @@
 
 
 
-<!--<div class="pgbar" id ="pgbar"><p>pgbar</p></div>-->
-{% if introtekst %}
-<h1>{{ introtekst }}!</h1>
-{% else %}
-<h1>Saving file...</h1>
-{% endif %}
-
-{% endblock %}
+<div class="clear"></div>
+{% endblock main %}

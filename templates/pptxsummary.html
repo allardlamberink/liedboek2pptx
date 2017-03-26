@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block head %}
 {{ super() }}
-	<script type="text/javascript" src="{{url_for('static', filename='jquery.sortable.min.js')}}"></script>
+	<script type="text/javascript" src="{{url_for('static', filename='js/jquery.sortable.min.js')}}"></script>
 	<script> $(function() {
 		$('.sortable').sortable();
 		$('.handles').sortable({
@@ -9,7 +9,7 @@
 		});
 	});
 	</script>
-	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='sortable.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/sortable.css')}}">
 {% endblock %}
 
 {% block body %}
@@ -23,12 +23,17 @@
 <section>
 <h2>Samenvatting / Controle</h2>
 
+{% if liturgietype %}
+	<p>Gelecteerd liturgietype: {{ liturgietype|safe }}</p>
+{% endif %}
+
 {% if finalliturgielijst %}
 <ol class="sortable list">
 
 {% for song in finalliturgielijst %}
-<li id="{{song[0]|safe}}">{{ song[0]|safe }}: {{ song[1]|safe }}</li>  {#|safe#}
+	<li id="{{song|safe}}">{{ song|safe }}</li>
 {% endfor %}
+
 </ol>
 
 

@@ -10,3 +10,6 @@ Minimum Python version: minimal 2.6 (because of pptx)
 getest met: Python 2.7.10
 
 default size images from liedboek online: 1600x1200
+
+
+the progresbar library is a forked version of https://github.com/Jaza/fotojazz

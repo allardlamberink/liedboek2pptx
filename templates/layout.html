@@ -2,8 +2,11 @@
 <head>
 {% block head %}
 	<title>Hervgembeerzerveld powerpoint generator</title>
-	<script type="text/javascript" src="{{url_for('static', filename='pptx_gen.js')}}"></script>
-	<script type="text/javascript" src="{{url_for('static', filename='jquery-3.0.0.min.js')}}"></script>
+    {% block extra_css %}{% endblock %}
+	<script type="text/javascript" src="{{url_for('static', filename='js/pptx_gen.js')}}"></script>
+	<script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.0.0.min.js')}}"></script>
+    <script type="text/javascript">var SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+    {% block extra_js %}{% endblock %}
 {% endblock %}
 </head>
 

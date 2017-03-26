@@ -3,6 +3,9 @@
      copyright (c) 2016 by A.D. Lamberink		
 '''
 
+# todo: toevoegen uitzondering voor lied 802, hierin wordt het refrein niet correct meegenomen
+# 2017-01-21: mail uit naar liedboek.nu met verzoek om verbetering
+
 import sys
 import zipfile
 import StringIO
@@ -10,10 +13,15 @@ from pptx import Presentation
 from pptx.util import Cm
 from PIL import Image
 import os
-from flask import Flask, request, redirect, url_for, flash, render_template, make_response
+from flask import Flask, request, redirect, url_for, flash, render_template, make_response, jsonify
 from werkzeug.utils import secure_filename
 
+from threading import Thread
+from time import sleep
+from uuid import uuid4
+
 app = Flask(__name__)
+create_pptx_processes = {}
 
 # filename structuur binnen zipfile:
 # meerdere coupletten:
@@ -182,7 +190,7 @@ def create_ppt(voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_ti
 		create_scripture_slide(prs, "Schriftlezing {0}: {1}".format(idx, scripture_fragment), "<tekst van {0} hier plakken>".format(scripture_fragment))
 		idx += 1
 	
-	standaard_ochtenddienst_layout = ['titel', 'liturgie', 'lied1', 'Welkom en afkondigingen', 
+	standaard_ochtenddienst_layout = ['titel', 'liturgie', 'lied1',
 				'Stil gebed\n-\nVotum en Groet', 'lied2', 'Lezing van Gods gebod',
 				'lied3', 'Gebed om de opening van het Woord', 'Projectlied via de beamer',
 				'Kinderen komen naar voren en gaan naar de kindernevendienst',
@@ -239,6 +247,12 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 #@app.route('/')
 #def hello_world():
 #   return 'Hello, World!'
+
+#@app.route('/favicon.ico')
+#def favicon():
+#    """Renders the favicon."""
+#return send_from_directory(path.join(app.root_path, 'static'),
+#                           'favicon.ico')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -299,26 +313,52 @@ def upload_file():
 
 @app.route('/pptx_summary', methods=['POST'])
 def pptx_summary():
-	import pdb
-	pdb.set_trace()
 	if request.method == 'POST':
 		finalliturgielijst = []
 		# check if the post request has the file part
 		if 'liedvolgorde' not in request.form:
 			flash('Geen liederen gevonden')
 		else:
-			liedstr = request.form['liedvolgorde'].split(',')
+			liedlist = request.form['liedvolgorde'].split(',')
 			liturgietypestr = request.form['liturgietype']
-			flash('Wel liederen gevonden {0}. Liturgietype={1}'.format(liedstr,liturgietypestr))
+			flash('Wel liederen gevonden {0}. Liturgietype={1}'.format(liedlist,liturgietypestr))
 
 		# todo Allard: ga hier verder
-		#finalliturgielijst.append(['test3', 'test4'])
-		return render_template('pptxsummary.html', finalliturgielijst=finalliturgielijst)
+		for lied in liedlist:
+			finalliturgielijst.append(lied)
+		import pdb
+		pdb.set_trace()
+		return render_template('pptxsummary.html', liturgietype=liturgietypestr, finalliturgielijst=finalliturgielijst) 
 
 
 # todo:
+
+class savefunc(Thread):
+	counter = 0
+
+	def __init__(self, *args, **kwargs):
+		"""When initialising this class, you can pass in either a list
+		of filenames (first param), or a string of space-delimited
+		filenames (second param). No need to pass in both."""
+		Thread.__init__(self)
+
+	def run(self):
+		for count in range(0,25):
+			sleep(1.0)
+			self.counter += 1
+
+	def percent_done(self):
+		"""Gets the current percent done for the thread."""
+		return float(self.counter)
+
 @app.route('/pptx_save', methods=['POST', 'GET'])
-def pptx_save():
+def pptx_save(): #//Thread
+	import pdb
+	pdb.set_trace()
+	sv0 = savefunc()
+	sv0.start()
+	print sv0.percent_done()
+	return render_template('saving.html', introtekst='Saving 5')
 	if request.method == 'POST':
 		# check if the post request has the file part
 		if 'liturgievolgorde' not in request.form:
@@ -327,14 +367,93 @@ def pptx_save():
 			litstr = request.form['liturgievolgorde'].split(',')
 			flash('Wel liederen gevonden {0}'.format(litstr))
 	else:
+		create_ppt("voorganger", "datum_tekst", "scripture_fragments", "titel_tekst", "sub_titel_tekst")  # todo: liedlisjt als extra argument
+		pdb.set_trace()
 		return render_template('saving.html', introtekst='Saving 5')
 
 	return redirect(request.url)
 
 
+
+@app.route('/process/start/<process_class_name>/')
+def process_start(process_class_name):
+    #arg1 = request.args.get('filenames_input', '', type=str)
+    process_module_name = process_class_name
+    #if process_class_name != 'CreatePPTXProcess':
+    process_module_name = process_module_name.replace('Process', '')
+    process_module_name = process_module_name.lower()
+    # Dynamically import the class / module for the particular process
+    # being started. This saves needing to import all possible
+    # modules / classes.
+    # todo allard subdirectories maken:process_module_obj = __import__('%s.%s.%s' % ('test_progress_thread',
+    #                                              'CreatePPTXProcess',
+    #                                              process_module_name),
+    #                                              fromlist=[process_class_name])
+
+    process_module_obj = __import__('%s' % (process_module_name),
+                                            fromlist=[process_class_name])
+
+    process_class_obj = getattr(process_module_obj, process_class_name)
+    
+    args = []
+    #arg2 = request.args.get('filebrowse_path', '', type=str)
+    extra_args_input = request.args.get('extra_args', '', type=str)
+    if extra_args_input != '':
+        args = extra_args_input.split(';')
+    kwargs = {
+        'allard_str': 'allard_str_tst',
+    }
+    
+    # Initialise the process thread object.
+    cpx = process_class_obj(*args, **kwargs)
+    cpx.start()
+    
+    if not process_class_name in create_pptx_processes:
+        create_pptx_processes[process_class_name] = {}
+    key = str(uuid4())
+    
+    # Store the process thread object in a global dict variable, so it
+    # continues to run and can have its progress queried, independent
+    # of the current session or the current request.
+    create_pptx_processes[process_class_name][key] = cpx
+    
+    percent_done = round(cpx.percent_done(), 1)
+    done=False
+    
+    return jsonify(key=key, percent=percent_done, done=done)
+
+
+@app.route('/process/progress/<process_class_name>/')
+def process_progress(process_class_name):
+    key = request.args.get('key', '', type=str)
+    
+    if not process_class_name in create_pptx_processes:
+        create_pptx_processes[process_class_name] = {}
+    
+    if not key in create_pptx_processes[process_class_name]:
+        return jsonify(error='Invalid process key.')
+    
+    # Retrieve progress of requested process thread, from global
+    # dict variable where the thread reference is stored.
+    percent_done = create_pptx_processes[process_class_name][key] \
+                   .percent_done()
+    
+    done = False
+    if not create_pptx_processes[process_class_name][key].is_alive() or \
+       percent_done == 100.0:
+        del create_pptx_processes[process_class_name][key]
+        done = True
+    percent_done = round(percent_done, 1)
+    
+    return jsonify(key=key, percent=percent_done, done=done)
+
+
+
+
 ############################ entry point (main) ####################
 if __name__ == "__main__":
 	start_cmdline()
+	# the web/flask version is started by running runserver.py
 	'''arv = sys.argv[1:]
 	if(len(arv)>0):
 		if arv[0] == '-c':  # start command-line version
