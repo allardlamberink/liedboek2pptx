@@ -311,8 +311,8 @@ def upload_file():
 
 
 
-@app.route('/pptx_summary', methods=['POST'])
-def pptx_summary():
+@app.route('/summary', methods=['POST'])
+def summary():
 	if request.method == 'POST':
 		finalliturgielijst = []
 		# check if the post request has the file part
@@ -321,14 +321,14 @@ def pptx_summary():
 		else:
 			liedlist = request.form['liedvolgorde'].split(',')
 			liturgietypestr = request.form['liturgietype']
-			flash('Wel liederen gevonden {0}. Liturgietype={1}'.format(liedlist,liturgietypestr))
+			#flash('Wel liederen gevonden {0}. Liturgietype={1}'.format(liedlist,liturgietypestr))
 
 		# todo Allard: ga hier verder
 		for lied in liedlist:
 			finalliturgielijst.append(lied)
 		import pdb
 		pdb.set_trace()
-		return render_template('pptxsummary.html', liturgietype=liturgietypestr, finalliturgielijst=finalliturgielijst) 
+		return render_template('summary.html', liturgietype=liturgietypestr, finalliturgielijst=finalliturgielijst) 
 
 
 # todo:
@@ -337,9 +337,6 @@ class savefunc(Thread):
 	counter = 0
 
 	def __init__(self, *args, **kwargs):
-		"""When initialising this class, you can pass in either a list
-		of filenames (first param), or a string of space-delimited
-		filenames (second param). No need to pass in both."""
 		Thread.__init__(self)
 
 	def run(self):
@@ -357,7 +354,6 @@ def pptx_save(): #//Thread
 	pdb.set_trace()
 	sv0 = savefunc()
 	sv0.start()
-	print sv0.percent_done()
 	return render_template('saving.html', introtekst='Saving 5')
 	if request.method == 'POST':
 		# check if the post request has the file part

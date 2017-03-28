@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # forked from : Created by Jeremy Epstein <http://greenash.net.au/>. Use it as you will: hack, fork, play.
 
-from glob import glob
 import sys
 from threading import Thread
 from time import sleep
@@ -46,7 +45,7 @@ class CreatePPTXProcessShellRun(object):
         cxp.start()
 
         while cxp.is_alive() and cxp.files_processed_count < cxp.total_file_count:
-            sleep(0.1)
+            sleep(1.0)
             print cxp.get_progress()
 
         print '%s threaded process complete. Now exiting.' % cxp.__class__.__name__

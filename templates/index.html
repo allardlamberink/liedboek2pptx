@@ -1,15 +1,15 @@
 {% extends "layout.html" %}
 {% block head %}
 {{ super() }}
-	<script type="text/javascript" src="{{url_for('static', filename='js/jquery.sortable.min.js')}}"></script>
-	<script> $(function() {
-		$('.sortable').sortable();
-		$('.handles').sortable({
-			handle: 'span'
-		});
-	});
-	</script>
-	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/sortable.css')}}">
+    <script type="text/javascript" src="{{url_for('static', filename='js/jquery.sortable.min.js')}}"></script>
+    <script> $(function() {
+        $('.sortable').sortable();
+        $('.handles').sortable({
+            handle: 'span'
+        });
+    });
+    </script>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/sortable.css')}}">
 {% endblock %}
 
 {% block body %}
@@ -40,18 +40,18 @@ TODO: op pagina 1 de voorganger + datum selecteren.
 </ol>
 
 
-<form action="/pptx_summary" method=post enctype=multipart/form-data>
-	<label for="liturgietype">Type dienst: </label>
-	<select name="liturgietype" id="liturgietype">
-		<option disabled value="ochtend_type_1">Morgendienst type 1</option>
-		<option disabled value="avond_type_1">Avonddienst type 1 (geloofsbelijdenis aan begin)</option>
-		<option disabled value="avond_type_2">Avonddienst type 2 (geloofsbelijdenis aan eind)</option>
-		<option value="song_only">Alleen liederen met titel en liturgiedia</option>
-		<option disabled value="ochtend_avondmaal">Morgendienst avondmaal</option>
-	</select>
-	<input type="hidden" name="liedvolgorde" id="liedvolgorde">
+<form action="/summary" method=post enctype=multipart/form-data>
+    <label for="liturgietype">Type dienst: </label>
+    <select name="liturgietype" id="liturgietype">
+        <option disabled value="ochtend_type_1">Morgendienst type 1</option>
+        <option disabled value="avond_type_1">Avonddienst type 1 (geloofsbelijdenis aan begin)</option>
+        <option disabled value="avond_type_2">Avonddienst type 2 (geloofsbelijdenis aan eind)</option>
+        <option value="song_only">Alleen liederen met titel en liturgiedia</option>
+        <option disabled value="ochtend_avondmaal">Morgendienst avondmaal</option>
+    </select>
+    <input type="hidden" name="liedvolgorde" id="liedvolgorde">
 </form>
 <br />
-<input type='button' value='Stap 2 - Powerpoint overzicht -->' onclick='PPTXsummary();'/>
+<input type='button' value='Stap 2 - Powerpoint overzicht -->' onclick='summary();'/>
 </section>
 {% endblock %}
