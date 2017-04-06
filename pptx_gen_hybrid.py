@@ -1,6 +1,7 @@
 ''' "pptx-generator v0.1"		
-     initial release date: 2016-06-26		
-     copyright (c) 2016 by A.D. Lamberink		
+     initial development start date: 2016-06-26		
+     initial release date: 2017-04-09
+     copyright (c) 2016-2017 by A.D. Lamberink		
 '''
 
 # todo: toevoegen uitzondering voor lied 802, hierin wordt het refrein niet correct meegenomen
@@ -147,10 +148,10 @@ def create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst):
 	for idx in range(0, len(scripture_fragments)):
 		subtitle.text += '\nSchriftlezing {0}: {1}'.format(idx+1, scripture_fragments[idx])
 
-# todo: read these parameters from the command-line
 
 ###################  command_line part ####################
 def start_cmdline():
+	# todo: read these parameters from the command-line
 	voorganger = 'Ds. F. Schipper'
 	datum_tekst = 'zondag 15 januari 2017'
 	scripture_fragments = ['Marcus: 1-11',]
@@ -254,7 +255,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 #return send_from_directory(path.join(app.root_path, 'static'),
 #                           'favicon.ico')
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/sortliturgie', methods=['GET', 'POST'])
 def index():
 	zf = get_zf()
 	filenamelist = get_filenamelist(zf)
@@ -266,7 +267,7 @@ def index():
 		coupletstr = ', '.join(couplets)
 		liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
 	#liturgielijst = song_couplets   #{ 'title': 'allard', 'Age': 7 }
-	return render_template('index.html', name='test van Allard',liturgielijst=liturgielijst)
+	return render_template('sortliturgie.html', name='test van Allard',liturgielijst=liturgielijst)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -283,7 +284,8 @@ def login():
 
 
 
-@app.route('/upload', methods=['GET', 'POST'])
+#@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def upload_file():
 	error=None
 	if request.method == 'POST':
@@ -303,7 +305,8 @@ def upload_file():
 				file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				#return redirect(url_for('upload_file', filename=filename))
 				flash('upload=suc6')
-				return redirect(url_for('upload_file', filename=filename))
+				#return redirect(url_for('upload_file', filename=filename))
+				return redirect(url_for('upload_file'))
 			else:
 				flash('Invalid filetype (only .zip is allowed)')
 
