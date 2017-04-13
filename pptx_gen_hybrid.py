@@ -152,9 +152,9 @@ def create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst):
 ###################  command_line part ####################
 def start_cmdline():
     # todo: read these parameters from the command-line
-    voorganger = 'Ds. F. Schipper'
-    datum_tekst = 'zondag 15 januari 2017'
-    scripture_fragments = ['Marcus: 1-11',]
+    voorganger = 'Ds. K. Hazeleger'
+    datum_tekst = 'vrijdag 14 april 2017'
+    scripture_fragments = ['Johannes 19: 23-30',]
     titel_tekst = 'Welkom!'
     sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
     zipfile = 'liedboek.zip'
@@ -177,8 +177,8 @@ def get_filenamelist(zf):
 
 def create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
     pptx_template_file = 'template.pptx'
-
-    filenamelist = get_filenamelist(zipfile)
+    zf = get_zf(zipfile)
+    filenamelist = get_filenamelist(zf)
 
     prs = create_pptx(pptx_template_file)
     create_title_slide(prs, titel_tekst, sub_titel_tekst)
@@ -208,7 +208,7 @@ def create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_teks
     for filename in filenamelist:
         if filename[-3:] == 'png':
             print 'processing img: {0}'.format(filename)
-            song_img_data = zipfile.read(filename)
+            song_img_data = zf.read(filename)
             img = Image.open(StringIO.StringIO(song_img_data))
             #img = Image.open(song_img_data)
             width, height = img.size
@@ -222,7 +222,7 @@ def create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_teks
     
     prs.save('result.pptx')
     print "powerpoint created..."
-    zipfile.close()
+    zf.close()
 
 
 
