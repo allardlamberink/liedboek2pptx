@@ -1,27 +1,237 @@
 #!/usr/bin/env python
-# forked from : Created by Jeremy Epstein <http://greenash.net.au/>. Use it as you will: hack, fork, play.
+# forked from github: Created by Jeremy Epstein <http://greenash.net.au/>. Use it as you will: hack, fork, play.
 
 import sys
 from threading import Thread
 from time import sleep
+import zipfile
+import StringIO
+from pptx import Presentation
+from pptx.util import Cm
+from PIL import Image
 
 
 class CreatePPTXProcess(Thread):
-    total_file_count = 10
+    total_file_count = 0
     files_processed_count = 0
     
     def __init__(self, *args, **kwargs):
         Thread.__init__(self)
         self.files_processed_count = 0
+
+
+    # filename structuur binnen zipfile:
+    # meerdere coupletten:
+    # projectie-111-muziek-couplet-1-1.png
+    # maar 1 couplet:
+    # projectie-425-muziek-2.png
+    def song_couplets2arr(self, filenamelist):
+        song_couplets = {}
+        for filename in filenamelist:
+            if filename[-3:] == 'png':
+                title_text_arr = filename.split('-')
+                #print filename
+                #print title_text_arr[3][0]
+                if title_text_arr[3][0].isdigit() == False:  # meerdere coupletten
+                    if title_text_arr[1] in song_couplets:
+                        if title_text_arr[4] not in song_couplets[title_text_arr[1]]:
+                            song_couplets[title_text_arr[1]].append(title_text_arr[4])
+                    else:
+                        song_couplets[title_text_arr[1]] = [title_text_arr[4]]
+                else:  # 1 couplet
+                    song_couplets[title_text_arr[1]] = ['1']
+        song_couplets[title_text_arr[1]].sort(key=int)
+        return song_couplets
+    
+    
+    def get_song_title_text(self, filename, song_couplets):
+        title_text = 'Lied '
+        title_text_arr = filename.split('-')
+        if title_text_arr[1].isdigit() and int(title_text_arr[1]) <= 150:
+            title_text = "Psalm "
+        title_text += title_text_arr[1] + ': '
+    
+        #print len(song_couplets[title_text_arr[1]])
+        for couplet in song_couplets[title_text_arr[1]]:
+            if len(song_couplets[title_text_arr[1]])==1:
+                title_text += ' [' + couplet + '] '
+            elif couplet == title_text_arr[4]:
+                title_text += ' [' + couplet + '] '
+            else:
+                title_text += ' ' + couplet + ' '
+        return title_text
+    
+    def create_pptx(self, pptx_template_file):
+        prs = Presentation(pptx_template_file)  # if filename is give, load the presentation
+        prs.core_properties.author = "pptx-generator v0.1"
+        prs.core_properties.title = "pptx-generator generator powerpoint for Hervgemb"
+        return prs
+    
+    def create_title_slide(self, prs, titel_tekst, sub_titel_tekst):
+        title_slide_layout = prs.slide_layouts[0]  # layout 0 = de startpagina
+        slide = prs.slides.add_slide(title_slide_layout)
+        title = slide.shapes.title
+        subtitle = slide.placeholders[1]
+        title.text = titel_tekst
+        subtitle.text = sub_titel_tekst
+    
+    
+    def create_song_slide(self, prs, song_title, song_img_data):
+        song_slide_layout = prs.slide_layouts[1]  # layout 1 = titel + object
+        slide = prs.slides.add_slide(song_slide_layout)
+    
+        # set title Psalm / Lied
+        title = slide.shapes.title
+        title.text = song_title
+        #title.left = Cm(3.30)
+        #title.top = Cm(1.50)
+    
+        # set song image (SongText + MusicNotes)
+        left = Cm(3.29)
+        top = Cm(1.94)
+        #pic = slide.shapes.add_picture(song_img_data, left, top)
+        img4= StringIO.StringIO(song_img_data.getvalue())
+        pic = slide.shapes.add_picture(img4, left, top)
+        #pic = slide.shapes.add_picture(song_img_data, left, top)
+        pic.height=pic.height/3
+        pic.width=pic.width/3
+    
+    
+    def create_scripture_slide(self, prs, scripture_title, scripture_text):
+        scripture_slide_layout = prs.slide_layouts[1]  # layout 1 = titel + object
+        slide = prs.slides.add_slide(scripture_slide_layout)
+    
+        # set scripture title
+        title = slide.shapes.title
+        title.text = scripture_title
+    
+        # set scripture text
+        subtitle = slide.placeholders[1]
+        subtitle.top = Cm(1.94)
+        subtitle.left = Cm(1.00)
+        subtitle.width = prs.slide_width - subtitle.left - Cm(0.50)
+        subtitle.height = prs.slide_height - subtitle.top - Cm(0.50)
+        subtitle.text += scripture_text + '\n'
+    
+    
+    
+    def create_intermediate_slide(self, prs, tekst):
+        interim_slide_layout = prs.slide_layouts[3]  # layout 3 = intermediate_slide
+        slide = prs.slides.add_slide(interim_slide_layout)
+    
+        # set title
+        title = slide.shapes.title
+        title.text = tekst
+        #title.left = Cm(3.30)
+        #title.top = Cm(1.50)
+    
+    def create_index_slide(self, prs, song_couplets, scripture_fragments, datum_tekst):
+        index_slide_layout = prs.slide_layouts[1]  # layout 1 = titel + object
+        slide = prs.slides.add_slide(index_slide_layout)
+    
+        # set title Psalm / Lied
+        title = slide.shapes.title
+        title.text = 'Liturgie ' + datum_tekst
+        #title.left = Cm(3.30)
+        #title.top = Cm(1.50)
+    
+        # set the liturgie:
+        subtitle = slide.placeholders[1]
+        for song_num in song_couplets.keys():
+            title_text = "Lied "
+            if song_num.isdigit() and int(song_num) <= 150:
+                title_text = "Psalm "
+            title_text += song_num + ': '
+            for c_idx in range(0, len(song_couplets[song_num])):
+                title_text += song_couplets[song_num][c_idx] + (', ' if  c_idx < len(song_couplets[song_num])-1 else '')
+            subtitle.text += title_text + '\n'
+        for idx in range(0, len(scripture_fragments)):
+            subtitle.text += '\nSchriftlezing {0}: {1}'.format(idx+1, scripture_fragments[idx])
+    
+    
+    def get_zf(self, liedboek_file):
+        if zipfile.is_zipfile(liedboek_file):
+            zf = zipfile.ZipFile(liedboek_file, 'r')
+        else:
+            exit(liedboek_file + ' is not readable')
+        return zf
+    
+    
+    def get_filenamelist(self, zf):
+        filenamelist = sorted(zf.namelist()) # the zipfile contains files in unspecified order, so manual sort is necessary
+        self.total_file_count = len(filenamelist)
+        return filenamelist
+    
+    def create_ppt(self, zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+        pptx_template_file = 'template.pptx'
+        zf = self.get_zf(zipfile)
+        filenamelist = self.get_filenamelist(zf)
+    
+        prs = self.create_pptx(pptx_template_file)
+        self.create_title_slide(prs, titel_tekst, sub_titel_tekst)
+    
+        song_couplets = self.song_couplets2arr(filenamelist)
+        self.create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst)
+        idx = 1
+        for scripture_fragment in scripture_fragments:
+            self.create_scripture_slide(prs, "Schriftlezing {0}: {1}".format(idx, scripture_fragment), "<tekst van {0} hier plakken>".format(scripture_fragment))
+            idx += 1
+    
+        standaard_ochtenddienst_layout = ['titel', 'liturgie', 'lied1',
+                    'Stil gebed\n-\nVotum en Groet', 'lied2', 'Lezing van Gods gebod',
+                    'lied3', 'Gebed om de opening van het Woord', 'Projectlied via de beamer',
+                    'Kinderen komen naar voren en gaan naar de kindernevendienst',
+                    'schriftlezing1', 'lied4', 'Verkondiging', 'lied5', 'Dankgebed',
+                    'Inzameling van de gaven', 'lied6', 'Zegen']
+        standaard_avonddienst_layout = ['titel', 'liturgie', 'lied1', 'Stil gebed\n-\nVotum en Groet',
+                        'lied2', 'Gebed om de opening van het Woord', 'schriftlezing1',
+                        'lied4', 'Verkondiging', 'lied5', 'Geloofsbelijdenis', 'lied6',
+                        'Gebed', 'Inzameling van de gaven', 'lied6', 'Zegen']
+    
+        for dianaam in standaard_ochtenddienst_layout:
+            self.create_intermediate_slide(prs, dianaam)
+    
+        #total_file_count = len(filenamelist)
+        for filename in filenamelist:
+            if filename[-3:] == 'png':
+                print 'processing img: {0}'.format(filename)
+                self.files_processed_count += 1
+                song_img_data = zf.read(filename)
+                img = Image.open(StringIO.StringIO(song_img_data))
+                #img = Image.open(song_img_data)
+                width, height = img.size
+                img2 = img.crop((0, 150 , width, height))  #origineel komt binnen als 1600x1200 (haal van de bovenkant 150 px af
+                # do not do any resizing here, but leave the original size and resizing using the height en width attributes of the shape (picture object), because this results in a sharper image
+                img3 = StringIO.StringIO()
+                img2.save(img3, format='PNG', quality=100)
+    
+                song_title = self.get_song_title_text(filename, song_couplets)
+                self.create_song_slide(prs, song_title, img3)
+    
+        prs.save('result.pptx')
+        print "powerpoint created..."
+        zf.close()
+
+
+
     
     def run(self):
-        for i in range(0, self.total_file_count):
-            sleep(1.0)
-            self.files_processed_count += 1
-    
+        zipfile = '/tmp/pytest/liedboek.zip'
+        voorganger = 'Ds. K. Hazeleger'
+        datum_tekst = 'vrijdag 14 april 2017'
+        scripture_fragments = ['Johannes 19: 23-30',]
+        titel_tekst = 'Welkom!'
+        sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+
+        self.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+
+
     def percent_done(self):
         """Gets the current percent done for the thread."""
-        return float(self.files_processed_count) / float(self.total_file_count) * 100.0
+        if self.total_file_count != 0:
+            return float(self.files_processed_count) / float(self.total_file_count) * 100.0
+        else:
+            return 1
     
     def get_progress(self):
         """Can be called at any time before, during or after thread
