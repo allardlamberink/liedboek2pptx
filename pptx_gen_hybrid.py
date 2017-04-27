@@ -8,7 +8,7 @@
 # 2017-01-21: mail uit naar liedboek.nu met verzoek om verbetering
 
 import sys
-from flask import Flask, request, redirect, url_for, flash, render_template, make_response, jsonify
+from flask import Flask, request, redirect, url_for, flash, render_template, make_response, jsonify, send_file
 from werkzeug.utils import secure_filename
 from threading import Thread
 from uuid import uuid4
@@ -26,15 +26,17 @@ def start_cmdline():
     scripture_fragments = ['Johannes 19: 23-30',]
     titel_tekst = 'Welkom!'
     sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
-    zipfile = 'liedboek.zip'
-    cpp = createpptx.CreatePPTXProcess()
-    cpp.run()
+    uploaded_zipfile = 'liedboek.zip'
+    upload_path = app.config['UPLOAD_FOLDER']
+    cpp = createpptx.CreatePPTXProcess(file_uuid='cmdlineversion')
+    cpp.setparams(upload_path, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    cpp.start()
     #$cpp.CreatePPTXProcess.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     return
 
 
 ###################  web part ####################
-UPLOAD_FOLDER = '/tmp/pytest'
+UPLOAD_FOLDER = '/tmp/'
 ALLOWED_EXTENSIONS = set(['zip'])
 
 def allowed_file(filename):
@@ -55,6 +57,20 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 #    """Renders the favicon."""
 #return send_from_directory(path.join(app.root_path, 'static'),
 #                           'favicon.ico')
+
+
+@app.route('/downloadresult', methods=['GET'])
+def downloadresult():
+    try:
+        import pdb
+        pdb.set_trace()
+        print "allard filename key uit request.args halen...."
+        filename = secure_filename(request.args.get('file_uuid', ''))
+        if filename:
+            filename = '%s.pptx' % filename
+        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), attachment_filename='hervgemb_presentatie.pptx', as_attachment=True)
+    except Exception as e:
+        return str(e)
 
 @app.route('/sortliturgie', methods=['GET'])
 def sortliturgie():
@@ -159,6 +175,7 @@ def process_start(process_class_name):
                                             fromlist=[process_class_name])
 
     process_class_obj = getattr(process_module_obj, process_class_name)
+    key = str(uuid4())
     
     args = []
     #arg2 = request.args.get('filebrowse_path', '', type=str)
@@ -166,16 +183,18 @@ def process_start(process_class_name):
     if extra_args_input != '':
         args = extra_args_input.split(';')
     kwargs = {
-        'allard_str': 'allard_str_tst',
+        'file_uuid': key,
     }
     
     # Initialise the process thread object.
     cpx = process_class_obj(*args, **kwargs)
+    import pdb
+    pdb.set_trace()
+    cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpx.start()
     
     if not process_class_name in create_pptx_processes:
         create_pptx_processes[process_class_name] = {}
-    key = str(uuid4())
     
     # Store the process thread object in a global dict variable, so it
     # continues to run and can have its progress queried, independent

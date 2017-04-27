@@ -12,13 +12,33 @@ from PIL import Image
 
 
 class CreatePPTXProcess(Thread):
+    params_are_set = False
     total_file_count = 0
     files_processed_count = 0
+    upload_path = None
+    uploaded_zipfile = None
+    voorganger = None
+    datum_tekst = None
+    scripture_fragments = None
+    titel_tekst = None
+    sub_titel_tekst = None
     
     def __init__(self, *args, **kwargs):
         Thread.__init__(self)
         self.files_processed_count = 0
+        import pdb
+        pdb.set_trace()
+        self.key = kwargs.get('file_uuid', None)
 
+    def setparams(self, upload_path, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+        self.upload_path = upload_path
+        self.zipfile = zipfile
+        self.voorganger = voorganger
+        self.datum_tekst = datum_tekst
+        self.scripture_fragments = scripture_fragments
+        self.titel_tekst = titel_tekst
+        self.sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+        self.params_are_set = True
 
     # filename structuur binnen zipfile:
     # meerdere coupletten:
@@ -162,9 +182,9 @@ class CreatePPTXProcess(Thread):
         self.total_file_count = len(filenamelist)
         return filenamelist
     
-    def create_ppt(self, zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+    def create_ppt(self, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         pptx_template_file = 'template.pptx'
-        zf = self.get_zf(zipfile)
+        zf = self.get_zf(uploaded_zipfile)
         filenamelist = self.get_filenamelist(zf)
     
         prs = self.create_pptx(pptx_template_file)
@@ -207,23 +227,21 @@ class CreatePPTXProcess(Thread):
     
                 song_title = self.get_song_title_text(filename, song_couplets)
                 self.create_song_slide(prs, song_title, img3)
-    
-        prs.save('result.pptx')
-        print "powerpoint created..."
+
+        prs.save('%s.pptx' % self.key)
+        print "powerpoint created... {0}".format(self.key)
         zf.close()
 
 
 
     
     def run(self):
-        zipfile = '/tmp/pytest/liedboek.zip'
-        voorganger = 'Ds. K. Hazeleger'
-        datum_tekst = 'vrijdag 14 april 2017'
-        scripture_fragments = ['Johannes 19: 23-30',]
-        titel_tekst = 'Welkom!'
-        sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+        if self.params_are_set and self.key:
+            self.create_ppt(self.uploaded_zipfile, self.voorganger, self.datum_tekst, self.scripture_fragments, 
+                            self.titel_tekst, self.sub_titel_tekst)
+        else:
+            print "make sure all parameters and key are set"
 
-        self.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
 
 
     def percent_done(self):

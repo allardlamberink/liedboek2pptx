@@ -61,7 +61,14 @@
 </div><!-- /#operations -->
 </form>
 
-<div class="operation-finished" id="operation-finished"><p><b>klaar, klik om te downloaden...</b></p></div>
+<div class="operation-finished" id="operation-finished">
+    <p><b>klaar, klik om te downloaden...</b></p>
+    <form action="/downloadresult" method=get enctype=multipart/form-data>
+	    <input type="hidden" name="file_uuid" id="file_uuid">
+        <input type=submit value="Download">
+    </form>
+
+</div>
 
 {% endif %}
 </section>

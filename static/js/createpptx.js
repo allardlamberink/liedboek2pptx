@@ -16,6 +16,7 @@ createpptx.operations = function() {
             //filebrowse_path += suffix;
             var args = {
                 'extra_args': ''
+                'voorganger': 'allard'
             };
             for (var i = 0; i < extra_args.length; i++) {
                 args['extra_args'] += (args['extra_args'] != '' ? ';'
@@ -59,16 +60,17 @@ createpptx.operations = function() {
                     $('#operation-' + process_css_name).removeAttr('disabled');
                     $('#operation-' + process_css_name + '-progress').progressbar('option', 'value', 0);
                     $('#operation-' + process_css_name + '-progress').progressbar('option', 'disabled', true);
-                    operation_finished();
+                    operation_finished(key);
                 }
                 
             });
     }
 
 
-    function operation_finished() {
+    function operation_finished(file_uuid) {
         $('.operation-progress').hide();
         $('.operation-finished').show();
+        $('#file_uuid').val(file_uuid);
     }
     
     return {
@@ -84,6 +86,5 @@ createpptx.operations = function() {
 
 
 $(function() {
-    console.log('button onclick is loaded allard');
     createpptx.operations.init();
 });
