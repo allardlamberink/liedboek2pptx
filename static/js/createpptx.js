@@ -14,9 +14,15 @@ createpptx.operations = function() {
             //    suffix = '';
             //}
             //filebrowse_path += suffix;
+            // allard todo 20170723: deze params uit een formulier halen
             var args = {
-                'extra_args': ''
-                'voorganger': 'allard'
+                'extra_args': '',
+                'uploaded_zipfile': '/tmp/liedboek.zip',
+                'voorganger': 'allard',
+                'datum_tekst': 'datum_tekst here',
+                'scripture_fragments': 'scripture_fragments here',
+                'titel_tekst': 'titel_teks here',
+                'sub_titel_tekst': 'sub_titel_tekst here'
             };
             for (var i = 0; i < extra_args.length; i++) {
                 args['extra_args'] += (args['extra_args'] != '' ? ';'

@@ -26,13 +26,13 @@ class CreatePPTXProcess(Thread):
     def __init__(self, *args, **kwargs):
         Thread.__init__(self)
         self.files_processed_count = 0
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         self.key = kwargs.get('file_uuid', None)
 
     def setparams(self, upload_path, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         self.upload_path = upload_path
-        self.zipfile = zipfile
+        self.uploaded_zipfile = uploaded_zipfile
         self.voorganger = voorganger
         self.datum_tekst = datum_tekst
         self.scripture_fragments = scripture_fragments

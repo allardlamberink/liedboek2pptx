@@ -190,6 +190,14 @@ def process_start(process_class_name):
     cpx = process_class_obj(*args, **kwargs)
     import pdb
     pdb.set_trace()
+    print "allard todo 20170723: params hier verzamelen (uit request.args halen)"
+    uploaded_zipfile = request.args.get('uploaded_zipfile')
+    voorganger = request.args.get('voorganger')
+    datum_tekst = request.args.get('datum_tekst')
+    scripture_fragments = request.args.get('scripture_fragments')
+    titel_tekst = request.args.get('titel_tekst')
+    sub_titel_tekst = request.args.get('sub_titel_tekst')
+    
     cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpx.start()
     
