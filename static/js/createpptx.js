@@ -21,7 +21,7 @@ createpptx.operations = function() {
                 'voorganger': 'allard',
                 'datum_tekst': 'datum_tekst here',
                 'scripture_fragments': 'scripture_fragments here',
-                'titel_tekst': 'titel_teks here',
+                'titel_tekst': 'titel_tekst here',
                 'sub_titel_tekst': 'sub_titel_tekst here'
             };
             for (var i = 0; i < extra_args.length; i++) {

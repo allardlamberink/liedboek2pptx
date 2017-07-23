@@ -9,6 +9,7 @@ import StringIO
 from pptx import Presentation
 from pptx.util import Cm
 from PIL import Image
+import os
 
 
 class CreatePPTXProcess(Thread):
@@ -228,7 +229,8 @@ class CreatePPTXProcess(Thread):
                 song_title = self.get_song_title_text(filename, song_couplets)
                 self.create_song_slide(prs, song_title, img3)
 
-        prs.save('%s.pptx' % self.key)
+        file_with_path = os.path.join(self.upload_path, self.key)
+        prs.save('%s.pptx' % file_with_path)
         print "powerpoint created... {0}".format(self.key)
         zf.close()
 

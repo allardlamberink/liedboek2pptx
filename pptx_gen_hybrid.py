@@ -62,13 +62,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 @app.route('/downloadresult', methods=['GET'])
 def downloadresult():
     try:
-        import pdb
-        pdb.set_trace()
-        print "allard filename key uit request.args halen...."
-        filename = secure_filename(request.args.get('file_uuid', ''))
-        if filename:
-            filename = '%s.pptx' % filename
-        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), attachment_filename='hervgemb_presentatie.pptx', as_attachment=True)
+        file_uuid = secure_filename(request.args.get('file_uuid', ''))
+        if file_uuid:
+            filename = '%s.pptx' % file_uuid
+        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), attachment_filename='hervgemb_presentatie_%s.pptx' % file_uuid, as_attachment=True)
     except Exception as e:
         return str(e)
 
@@ -188,9 +185,9 @@ def process_start(process_class_name):
     
     # Initialise the process thread object.
     cpx = process_class_obj(*args, **kwargs)
-    import pdb
-    pdb.set_trace()
-    print "allard todo 20170723: params hier verzamelen (uit request.args halen)"
+    #import pdb
+    #pdb.set_trace()
+    #print "allard todo 20170723: params hier verzamelen (uit request.args halen)"
     uploaded_zipfile = request.args.get('uploaded_zipfile')
     voorganger = request.args.get('voorganger')
     datum_tekst = request.args.get('datum_tekst')
