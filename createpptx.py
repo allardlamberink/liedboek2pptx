@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# forked from github: Created by Jeremy Epstein <http://greenash.net.au/>. Use it as you will: hack, fork, play.
 
 import sys
 from threading import Thread
@@ -23,13 +22,13 @@ class CreatePPTXProcess(Thread):
     scripture_fragments = None
     titel_tekst = None
     sub_titel_tekst = None
-    
+ 
+
     def __init__(self, *args, **kwargs):
         Thread.__init__(self)
         self.files_processed_count = 0
-        #import pdb
-        #pdb.set_trace()
         self.key = kwargs.get('file_uuid', None)
+
 
     def setparams(self, upload_path, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         self.upload_path = upload_path
@@ -41,6 +40,7 @@ class CreatePPTXProcess(Thread):
         self.sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
         self.params_are_set = True
 
+
     # filename structuur binnen zipfile:
     # meerdere coupletten:
     # projectie-111-muziek-couplet-1-1.png
@@ -51,8 +51,6 @@ class CreatePPTXProcess(Thread):
         for filename in filenamelist:
             if filename[-3:] == 'png':
                 title_text_arr = filename.split('-')
-                #print filename
-                #print title_text_arr[3][0]
                 if title_text_arr[3][0].isdigit() == False:  # meerdere coupletten
                     if title_text_arr[1] in song_couplets:
                         if title_text_arr[4] not in song_couplets[title_text_arr[1]]:
@@ -63,8 +61,8 @@ class CreatePPTXProcess(Thread):
                     song_couplets[title_text_arr[1]] = ['1']
         song_couplets[title_text_arr[1]].sort(key=int)
         return song_couplets
-    
-    
+
+
     def get_song_title_text(self, filename, song_couplets):
         title_text = 'Lied '
         title_text_arr = filename.split('-')
@@ -81,13 +79,15 @@ class CreatePPTXProcess(Thread):
             else:
                 title_text += ' ' + couplet + ' '
         return title_text
-    
+
+
     def create_pptx(self, pptx_template_file):
         prs = Presentation(pptx_template_file)  # if filename is give, load the presentation
         prs.core_properties.author = "pptx-generator v0.1"
         prs.core_properties.title = "pptx-generator generator powerpoint for Hervgemb"
         return prs
-    
+
+
     def create_title_slide(self, prs, titel_tekst, sub_titel_tekst):
         title_slide_layout = prs.slide_layouts[0]  # layout 0 = de startpagina
         slide = prs.slides.add_slide(title_slide_layout)
@@ -95,8 +95,8 @@ class CreatePPTXProcess(Thread):
         subtitle = slide.placeholders[1]
         title.text = titel_tekst
         subtitle.text = sub_titel_tekst
-    
-    
+
+
     def create_song_slide(self, prs, song_title, song_img_data):
         song_slide_layout = prs.slide_layouts[1]  # layout 1 = titel + object
         slide = prs.slides.add_slide(song_slide_layout)
@@ -116,8 +116,8 @@ class CreatePPTXProcess(Thread):
         #pic = slide.shapes.add_picture(song_img_data, left, top)
         pic.height=pic.height/3
         pic.width=pic.width/3
-    
-    
+
+
     def create_scripture_slide(self, prs, scripture_title, scripture_text):
         scripture_slide_layout = prs.slide_layouts[1]  # layout 1 = titel + object
         slide = prs.slides.add_slide(scripture_slide_layout)
@@ -133,9 +133,8 @@ class CreatePPTXProcess(Thread):
         subtitle.width = prs.slide_width - subtitle.left - Cm(0.50)
         subtitle.height = prs.slide_height - subtitle.top - Cm(0.50)
         subtitle.text += scripture_text + '\n'
-    
-    
-    
+
+
     def create_intermediate_slide(self, prs, tekst):
         interim_slide_layout = prs.slide_layouts[3]  # layout 3 = intermediate_slide
         slide = prs.slides.add_slide(interim_slide_layout)
@@ -145,7 +144,8 @@ class CreatePPTXProcess(Thread):
         title.text = tekst
         #title.left = Cm(3.30)
         #title.top = Cm(1.50)
-    
+
+
     def create_index_slide(self, prs, song_couplets, scripture_fragments, datum_tekst):
         index_slide_layout = prs.slide_layouts[1]  # layout 1 = titel + object
         slide = prs.slides.add_slide(index_slide_layout)
@@ -168,21 +168,22 @@ class CreatePPTXProcess(Thread):
             subtitle.text += title_text + '\n'
         for idx in range(0, len(scripture_fragments)):
             subtitle.text += '\nSchriftlezing {0}: {1}'.format(idx+1, scripture_fragments[idx])
-    
-    
+
+
     def get_zf(self, liedboek_file):
         if zipfile.is_zipfile(liedboek_file):
             zf = zipfile.ZipFile(liedboek_file, 'r')
         else:
             exit(liedboek_file + ' is not readable')
         return zf
-    
-    
+
+
     def get_filenamelist(self, zf):
         filenamelist = sorted(zf.namelist()) # the zipfile contains files in unspecified order, so manual sort is necessary
         self.total_file_count = len(filenamelist)
         return filenamelist
-    
+
+
     def create_ppt(self, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         pptx_template_file = 'template.pptx'
         zf = self.get_zf(uploaded_zipfile)
@@ -235,8 +236,6 @@ class CreatePPTXProcess(Thread):
         zf.close()
 
 
-
-    
     def run(self):
         if self.params_are_set and self.key:
             self.create_ppt(self.uploaded_zipfile, self.voorganger, self.datum_tekst, self.scripture_fragments, 
@@ -245,14 +244,14 @@ class CreatePPTXProcess(Thread):
             print "make sure all parameters and key are set"
 
 
-
     def percent_done(self):
         """Gets the current percent done for the thread."""
         if self.total_file_count != 0:
             return float(self.files_processed_count) / float(self.total_file_count) * 100.0
         else:
             return 1
-    
+
+
     def get_progress(self):
         """Can be called at any time before, during or after thread
         execution, to get current progress."""
@@ -264,7 +263,8 @@ class CreatePPTXProcessShellRun(object):
     
     def __init__(self, init_class=CreatePPTXProcess):
         self.init_class = init_class
-    
+
+
     def __call__(self, *args, **kwargs):
         cxp = self.init_class(*args, **kwargs)
 
