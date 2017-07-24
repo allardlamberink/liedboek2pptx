@@ -9,6 +9,7 @@ from pptx import Presentation
 from pptx.util import Cm
 from PIL import Image
 import os
+from collections import OrderedDict
 
 
 class CreatePPTXProcess(Thread):
@@ -61,7 +62,6 @@ class CreatePPTXProcess(Thread):
                         song_couplets[title_text_arr[1]] = [title_text_arr[4]]
                 else:  # 1 couplet
                     song_couplets[title_text_arr[1]] = ['1']
-        song_couplets[title_text_arr[1]].sort(key=int)
         return song_couplets
 
 
@@ -211,7 +211,10 @@ class CreatePPTXProcess(Thread):
         self.create_title_slide(prs, titel_tekst, sub_titel_tekst)
     
         song_couplets = self.song_couplets2arr(sorted_filenamelist)
-        self.create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst)
+        song_couplets_sorted = OrderedDict((k, song_couplets[k]) for k in volgordelist)
+
+
+        self.create_index_slide(prs, song_couplets_sorted, scripture_fragments, datum_tekst)
         idx = 1
         for scripture_fragment in scripture_fragments:
             self.create_scripture_slide(prs, "Schriftlezing {0}: {1}".format(idx, scripture_fragment), "<tekst van {0} hier plakken>".format(scripture_fragment))
@@ -245,7 +248,7 @@ class CreatePPTXProcess(Thread):
                 img3 = StringIO.StringIO()
                 img2.save(img3, format='PNG', quality=100)
     
-                song_title = self.get_song_title_text(filename, song_couplets)
+                song_title = self.get_song_title_text(filename, song_couplets_sorted)
                 self.create_song_slide(prs, song_title, img3)
 
         file_with_path = os.path.join(self.upload_path, self.key)
