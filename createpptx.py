@@ -65,6 +65,20 @@ class CreatePPTXProcess(Thread):
         return song_couplets
 
 
+    # filename structuur binnen zipfile:
+    # meerdere coupletten:
+    # projectie-111-muziek-couplet-1-1.png
+    # maar 1 couplet:
+    # projectie-425-muziek-2.png
+    def sort_filenamelist(self, filenamelist, volgordelist):
+        sorted_filenamelist = []
+        for liednr in volgordelist:
+            for filename in filenamelist:
+                if filename.startswith('projectie-%s-' % liednr):
+                    sorted_filenamelist.append(filename)
+        return sorted_filenamelist
+
+
     def get_song_title_text(self, filename, song_couplets):
         title_text = 'Lied '
         title_text_arr = filename.split('-')
@@ -186,15 +200,17 @@ class CreatePPTXProcess(Thread):
         return filenamelist
 
 
-    def create_ppt(self, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+    def create_ppt(self, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst, volgordelist):
         pptx_template_file = 'template.pptx'
         zf = self.get_zf(uploaded_zipfile)
         filenamelist = self.get_filenamelist(zf)
+        
+        sorted_filenamelist = self.sort_filenamelist(filenamelist, volgordelist)
     
         prs = self.create_pptx(pptx_template_file)
         self.create_title_slide(prs, titel_tekst, sub_titel_tekst)
     
-        song_couplets = self.song_couplets2arr(filenamelist)
+        song_couplets = self.song_couplets2arr(sorted_filenamelist)
         self.create_index_slide(prs, song_couplets, scripture_fragments, datum_tekst)
         idx = 1
         for scripture_fragment in scripture_fragments:
@@ -216,7 +232,7 @@ class CreatePPTXProcess(Thread):
             self.create_intermediate_slide(prs, dianaam)
     
         #total_file_count = len(filenamelist)
-        for filename in filenamelist:
+        for filename in sorted_filenamelist:
             if filename[-3:] == 'png':
                 print 'processing img: {0}'.format(filename)
                 self.files_processed_count += 1
@@ -241,7 +257,7 @@ class CreatePPTXProcess(Thread):
     def run(self):
         if self.params_are_set and self.key:
             self.create_ppt(self.uploaded_zipfile, self.voorganger, self.datum_tekst, self.scripture_fragments, 
-                            self.titel_tekst, self.sub_titel_tekst)
+                            self.titel_tekst, self.sub_titel_tekst, self.volgorde)
         else:
             print "make sure all parameters and key are set"
 
