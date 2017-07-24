@@ -1,3 +1,5 @@
+var createpptx = createpptx || {};
+
 createpptx.operations = function() {
     function process_start(process_css_name,
                            process_class_name,
@@ -22,7 +24,8 @@ createpptx.operations = function() {
                 'datum_tekst': 'datum_tekst here',
                 'scripture_fragments': 'scripture_fragments here',
                 'titel_tekst': 'titel_tekst here',
-                'sub_titel_tekst': 'sub_titel_tekst here'
+                'sub_titel_tekst': 'sub_titel_tekst here',
+                'finalvolgorde': $('#liedvolgorde').val()
             };
             for (var i = 0; i < extra_args.length; i++) {
                 args['extra_args'] += (args['extra_args'] != '' ? ';'

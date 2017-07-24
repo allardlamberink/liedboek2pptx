@@ -14,6 +14,7 @@ from threading import Thread
 from uuid import uuid4
 import os
 import createpptx
+import ast
 
 app = Flask(__name__)
 create_pptx_processes = {}
@@ -155,7 +156,6 @@ def summary():
 
 @app.route('/process/start/<process_class_name>/')
 def process_start(process_class_name):
-    #arg1 = request.args.get('filenames_input', '', type=str)
     process_module_name = process_class_name
     #if process_class_name != 'CreatePPTXProcess':
     process_module_name = process_module_name.replace('Process', '')
@@ -175,7 +175,6 @@ def process_start(process_class_name):
     key = str(uuid4())
     
     args = []
-    #arg2 = request.args.get('filebrowse_path', '', type=str)
     extra_args_input = request.args.get('extra_args', '', type=str)
     if extra_args_input != '':
         args = extra_args_input.split(';')
@@ -185,17 +184,16 @@ def process_start(process_class_name):
     
     # Initialise the process thread object.
     cpx = process_class_obj(*args, **kwargs)
-    #import pdb
-    #pdb.set_trace()
-    #print "allard todo 20170723: params hier verzamelen (uit request.args halen)"
+
     uploaded_zipfile = request.args.get('uploaded_zipfile')
     voorganger = request.args.get('voorganger')
     datum_tekst = request.args.get('datum_tekst')
     scripture_fragments = request.args.get('scripture_fragments')
     titel_tekst = request.args.get('titel_tekst')
     sub_titel_tekst = request.args.get('sub_titel_tekst')
+    volgorde = ast.literal_eval(request.args.get('finalvolgorde'))
     
-    cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst, volgorde)
     cpx.start()
     
     if not process_class_name in create_pptx_processes:

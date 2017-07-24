@@ -1,10 +1,5 @@
 var createpptx = createpptx || {};
 
-function allardtest(arg) {
-	alert(arg);
-}
-
-
 function summary() {
 	var songorder="";
 	$('.sortable li').each(function(i) {
@@ -20,16 +15,7 @@ function summary() {
 }
 
 
-function PPTXsave() {
-	alert('save page test');
-	var lied_element = document.getElementById("liedvolgorde");
-	//debugger;
-	//lied_element.form.submit();
-	//$('#pgbar').find('p').text('allard')
-}
-
-
-//$(document).ready(function() {
-//  $.ajaxSetup({ cache: false });
-  // disable cache in order to let getJson work in IE
-//});
+$(document).ready(function() {
+  $.ajaxSetup({ cache: false });
+   //disable cache in order to let getJson work in IE
+});

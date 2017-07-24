@@ -22,6 +22,7 @@ class CreatePPTXProcess(Thread):
     scripture_fragments = None
     titel_tekst = None
     sub_titel_tekst = None
+    volgorde = None
  
 
     def __init__(self, *args, **kwargs):
@@ -30,7 +31,7 @@ class CreatePPTXProcess(Thread):
         self.key = kwargs.get('file_uuid', None)
 
 
-    def setparams(self, upload_path, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+    def setparams(self, upload_path, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst, volgorde):
         self.upload_path = upload_path
         self.uploaded_zipfile = uploaded_zipfile
         self.voorganger = voorganger
@@ -38,6 +39,7 @@ class CreatePPTXProcess(Thread):
         self.scripture_fragments = scripture_fragments
         self.titel_tekst = titel_tekst
         self.sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+        self.volgorde = volgorde
         self.params_are_set = True
 
 

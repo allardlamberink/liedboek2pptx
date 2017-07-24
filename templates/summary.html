@@ -42,7 +42,6 @@
 
 
 <!--<form action="/pptx_save" method=post enctype=multipart/form-data>
-	<input type="hidden" name="liedvolgorde" id="liedvolgorde">
 </form>
 <br />
 <input type='button' value='Stap 3 - genereer Powerpoint presentatie >' onclick='PPTXsave();'/>
@@ -55,6 +54,7 @@
 <form action="/" method="post">
 <div id="operations" class="grid_6">
   <div class="operation">
+    <input type="hidden" name="liedvolgorde" id="liedvolgorde" value="{{ finalliturgielijst|safe }}">
     <input type="submit" value="Maak powerpoint" id="operation-createpptx" />
     <div class="operation-progress" id="operation-createpptx-progress"></div>
   </div><!-- /#operation -->
