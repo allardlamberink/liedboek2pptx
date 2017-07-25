@@ -17,13 +17,13 @@ class CreatePPTXProcess(Thread):
     total_file_count = 0
     files_processed_count = 0
     upload_path = None
-    uploaded_zipfile = None
+    uploaded_zipfilename = None
     voorganger = None
     datum_tekst = None
     scripture_fragments = None
     titel_tekst = None
     sub_titel_tekst = None
-    volgorde = None
+    liedvolgorde = None
  
 
     def __init__(self, *args, **kwargs):
@@ -32,19 +32,19 @@ class CreatePPTXProcess(Thread):
         self.key = kwargs.get('file_uuid', None)
 
 
-    def setparams(self, upload_path, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst, volgorde):
+    def setparams(self, upload_path, uploaded_zipfilename, liedvolgorde, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         self.upload_path = upload_path
-        self.uploaded_zipfile = uploaded_zipfile
+        self.uploaded_zipfilename = uploaded_zipfilename
         self.voorganger = voorganger
         self.datum_tekst = datum_tekst
-        self.scripture_fragments = scripture_fragments
+        self.scripture_fragments = ['Mattheus 5: 1-15', 'John 3: 16']
         self.titel_tekst = titel_tekst
         self.sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
-        self.volgorde = volgorde
+        self.liedvolgorde = liedvolgorde
         self.params_are_set = True
 
 
-    # filename structuur binnen zipfile:
+    # filename structuur binnen zip_obj:
     # meerdere coupletten:
     # projectie-111-muziek-couplet-1-1.png
     # maar 1 couplet:
@@ -65,7 +65,7 @@ class CreatePPTXProcess(Thread):
         return song_couplets
 
 
-    # filename structuur binnen zipfile:
+    # filename structuur binnen zip_obj:
     # meerdere coupletten:
     # projectie-111-muziek-couplet-1-1.png
     # maar 1 couplet:
@@ -186,24 +186,24 @@ class CreatePPTXProcess(Thread):
             subtitle.text += '\nSchriftlezing {0}: {1}'.format(idx+1, scripture_fragments[idx])
 
 
-    def get_zf(self, liedboek_file):
-        if zipfile.is_zipfile(liedboek_file):
-            zf = zipfile.ZipFile(liedboek_file, 'r')
+    def get_zip_obj(self, zipfilename):
+        if zipfile.is_zipfile(zipfilename):
+            zip_obj = zipfile.ZipFile(zipfilename, 'r')
         else:
-            exit(liedboek_file + ' is not readable')
-        return zf
+            exit(zipfilename + ' is not readable')
+        return zip_obj
 
 
-    def get_filenamelist(self, zf):
-        filenamelist = sorted(zf.namelist()) # the zipfile contains files in unspecified order, so manual sort is necessary
+    def get_filenamelist(self, zip_obj):
+        filenamelist = sorted(zip_obj.namelist()) # the zipfile contains files in unspecified order, so manual sort is necessary
         self.total_file_count = len(filenamelist)
         return filenamelist
 
 
-    def create_ppt(self, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst, volgordelist):
+    def create_ppt(self, uploaded_zipfilename, volgordelist, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         pptx_template_file = 'template.pptx'
-        zf = self.get_zf(uploaded_zipfile)
-        filenamelist = self.get_filenamelist(zf)
+        zip_obj = self.get_zip_obj(uploaded_zipfilename)
+        filenamelist = self.get_filenamelist(zip_obj)
         
         sorted_filenamelist = self.sort_filenamelist(filenamelist, volgordelist)
     
@@ -239,7 +239,7 @@ class CreatePPTXProcess(Thread):
             if filename[-3:] == 'png':
                 print 'processing img: {0}'.format(filename)
                 self.files_processed_count += 1
-                song_img_data = zf.read(filename)
+                song_img_data = zip_obj.read(filename)
                 img = Image.open(StringIO.StringIO(song_img_data))
                 #img = Image.open(song_img_data)
                 width, height = img.size
@@ -254,13 +254,12 @@ class CreatePPTXProcess(Thread):
         file_with_path = os.path.join(self.upload_path, self.key)
         prs.save('%s.pptx' % file_with_path)
         print "powerpoint created... {0}".format(self.key)
-        zf.close()
+        zip_obj.close()
 
 
     def run(self):
         if self.params_are_set and self.key:
-            self.create_ppt(self.uploaded_zipfile, self.voorganger, self.datum_tekst, self.scripture_fragments, 
-                            self.titel_tekst, self.sub_titel_tekst, self.volgorde)
+            self.create_ppt(self.uploaded_zipfilename, self.liedvolgorde, self.voorganger, self.datum_tekst, self.scripture_fragments, self.titel_tekst, self.sub_titel_tekst)
         else:
             print "make sure all parameters and key are set"
 

@@ -19,7 +19,7 @@ createpptx.operations = function() {
             // allard todo 20170723: deze params uit een formulier halen
             var args = {
                 'extra_args': '',
-                'uploaded_zipfile': '/tmp/liedboek.zip',
+                'uploaded_zipfilename': '/tmp/liedboek.zip',
                 'voorganger': 'allard',
                 'datum_tekst': 'datum_tekst here',
                 'scripture_fragments': 'scripture_fragments here',

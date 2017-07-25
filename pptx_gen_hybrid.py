@@ -27,10 +27,11 @@ def start_cmdline():
     scripture_fragments = ['Johannes 19: 23-30',]
     titel_tekst = 'Welkom!'
     sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
-    uploaded_zipfile = 'liedboek.zip'
+    uploaded_zipfilename = 'liedboek.zip'
     upload_path = app.config['UPLOAD_FOLDER']
     cpp = createpptx.CreatePPTXProcess(file_uuid='cmdlineversion')
-    cpp.setparams(upload_path, uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    liedvolgorde = [1,2,3]
+    cpp.setparams(upload_path, uploaded_zipfilename, liedvolgorde, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpp.start()
     #$cpp.CreatePPTXProcess.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     return
@@ -72,17 +73,17 @@ def downloadresult():
 
 @app.route('/sortliturgie', methods=['GET'])
 def sortliturgie():
-    uploaded_zipfile = request.args.get('uploaded_zipfile', None)
-    if not uploaded_zipfile:
+    uploaded_zipfilename = request.args.get('uploaded_zipfilename', None)
+    if not uploaded_zipfilename:
         flash('geen file geupload')
         return redirect(url_for('upload_file'))
     else:
-        uploaded_zipfile = secure_filename(uploaded_zipfile)  # secure again
-        uploaded_zipfile = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_zipfile)
+        uploaded_zipfilename_secure = secure_filename(uploaded_zipfilename)  # secure again
+        uploaded_zipfilename_secure = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_zipfilename_secure)
         cpp = createpptx.CreatePPTXProcess()
-        zf = cpp.get_zf(uploaded_zipfile)
-        filenamelist = cpp.get_filenamelist(zf)
-        zf.close()
+        zip_obj = cpp.get_zip_obj(uploaded_zipfilename_secure)
+        filenamelist = cpp.get_filenamelist(zip_obj)
+        zip_obj.close()
         song_couplets = cpp.song_couplets2arr(filenamelist)
         liturgielijst = []
         for song, couplets in song_couplets.iteritems():
@@ -127,7 +128,7 @@ def upload_file():
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 flash('upload=suc6')
-                return redirect(url_for('sortliturgie', uploaded_zipfile=filename))
+                return redirect(url_for('sortliturgie', uploaded_zipfilename=filename))
             else:
                 flash('Invalid filetype (only .zip is allowed)')
 
@@ -185,15 +186,15 @@ def process_start(process_class_name):
     # Initialise the process thread object.
     cpx = process_class_obj(*args, **kwargs)
 
-    uploaded_zipfile = request.args.get('uploaded_zipfile')
+    uploaded_zipfilename = request.args.get('uploaded_zipfilename')
     voorganger = request.args.get('voorganger')
     datum_tekst = request.args.get('datum_tekst')
     scripture_fragments = request.args.get('scripture_fragments')
     titel_tekst = request.args.get('titel_tekst')
     sub_titel_tekst = request.args.get('sub_titel_tekst')
-    volgorde = ast.literal_eval(request.args.get('finalvolgorde'))
+    liedvolgorde = ast.literal_eval(request.args.get('finalvolgorde'))
     
-    cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst, volgorde)
+    cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfilename, liedvolgorde, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpx.start()
     
     if not process_class_name in create_pptx_processes:
