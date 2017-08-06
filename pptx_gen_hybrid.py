@@ -186,6 +186,9 @@ def process_start(process_class_name):
     # Initialise the process thread object.
     cpx = process_class_obj(*args, **kwargs)
 
+    import pdb
+    pdb.set_trace()
+    print "allard check request.args / request.form"
     uploaded_zipfilename = request.args.get('uploaded_zipfilename')
     voorganger = request.args.get('voorganger')
     datum_tekst = request.args.get('datum_tekst')

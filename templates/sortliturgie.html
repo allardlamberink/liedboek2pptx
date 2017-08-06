@@ -24,11 +24,6 @@
 {% if filename %}
 <h1>file=</h1>
 {% endif %}
-{#
-
-TODO: op pagina 1 de voorganger + datum selecteren.
-
-#}
 <section>
 <h2>Liturgie volgorde</h2>
 
@@ -50,7 +45,12 @@ TODO: op pagina 1 de voorganger + datum selecteren.
         <option disabled value="avond_type_2">Avonddienst type 2 (geloofsbelijdenis aan eind)</option>
         <option value="song_only">Alleen liederen met titel en liturgiedia</option>
         <option disabled value="ochtend_avondmaal">Morgendienst avondmaal</option>
-    </select>
+    </select><br>
+    <label for="voorganger">Voorganger: </label><input type="text" name="voorganger" id="voorganger" value="Ds."><br> 
+    <label for="datum">Datum: </label><input type="text" name="datum" id="datum" value="2017-07-25"><br> 
+    <label for="titeltekst">Titeltekst: </label><input type="text" name="titeltekst" id="titeltekst" value="Welkom!"><br> 
+    <label for="scripture_fragment_1">Schriftlezing 1: </label><input type="text" name="scripture_fragment_1" id="scripture_fragment_1" value="Mattheus 5: 1-16"><br> 
+    <label for="scripture_fragment_2">Schriftlezing 2: </label><input type="text" name="scripture_fragment_2" id="scripture_fragment_2" value="John 3: 16"><br> 
     <input type="hidden" name="liedvolgorde" id="liedvolgorde">
 </form>
 <br />

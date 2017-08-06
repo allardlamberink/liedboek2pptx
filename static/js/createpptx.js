@@ -20,11 +20,10 @@ createpptx.operations = function() {
             var args = {
                 'extra_args': '',
                 'uploaded_zipfilename': '/tmp/liedboek.zip',
-                'voorganger': 'allard',
-                'datum_tekst': 'datum_tekst here',
+                'voorganger': $('#voorganger').val(),
                 'scripture_fragments': 'scripture_fragments here',
                 'titel_tekst': 'titel_tekst here',
-                'sub_titel_tekst': 'sub_titel_tekst here',
+                'sub_titel_tekst': $('#datum').val(),
                 'finalvolgorde': $('#liedvolgorde').val()
             };
             for (var i = 0; i < extra_args.length; i++) {
