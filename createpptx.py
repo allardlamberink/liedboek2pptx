@@ -37,9 +37,9 @@ class CreatePPTXProcess(Thread):
         self.uploaded_zipfilename = uploaded_zipfilename
         self.voorganger = voorganger
         self.datum_tekst = datum_tekst
-        self.scripture_fragments = ['Mattheus 5: 1-15', 'John 3: 16']
+        self.scripture_fragments = scripture_fragments #['Mattheus 5: 1-15', 'John 3: 16']
         self.titel_tekst = titel_tekst
-        self.sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+        self.sub_titel_tekst = sub_titel_tekst #+ '\nVoorganger: ' + voorganger
         self.liedvolgorde = liedvolgorde
         self.params_are_set = True
 

@@ -91,7 +91,7 @@ def sortliturgie():
             coupletstr = ', '.join(couplets)
             liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
         #liturgielijst = song_couplets   #{ 'title': 'allard', 'Age': 7 }
-        return render_template('sortliturgie.html', name='test van Allard',liturgielijst=liturgielijst)
+        return render_template('sortliturgie.html', name='test van Allard',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure)
 
 
 #@app.route('/login', methods=['GET', 'POST'])
@@ -140,6 +140,7 @@ def upload_file():
 def summary():
     if request.method == 'POST':
         finalliturgielijst = []
+        scripture_fragments = []
         # check if the post request has the file part
         if 'liedvolgorde' not in request.form:
             flash('Geen liederen gevonden')
@@ -148,11 +149,23 @@ def summary():
             liturgietypestr = request.form['liturgietype']
             #flash('Wel liederen gevonden {0}. Liturgietype={1}'.format(liedlist,liturgietypestr))
 
-        # todo Allard: ga hier verder
         for lied in liedlist:
             finalliturgielijst.append(lied)
-        return render_template('summary.html', liturgietype=liturgietypestr, finalliturgielijst=finalliturgielijst) 
+        
+        uploaded_zipfilename = request.form['uploaded_zipfilename']
+        voorganger = request.form['voorganger']
+        datum_tekst = request.form['datum']
+        titel_tekst = request.form['titeltekst']
+        sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+        if request.form['scripture_fragment_1']:
+            scripture_fragments.append(request.form['scripture_fragment_1'])
+        if request.form['scripture_fragment_2']:
+            scripture_fragments.append(request.form['scripture_fragment_2'])
 
+        return render_template('summary.html', uploaded_zipfilename=uploaded_zipfilename, liturgietype=liturgietypestr, 
+                                finalliturgielijst=finalliturgielijst, 
+                                voorganger=voorganger, datum_tekst=datum_tekst, scripture_fragments=scripture_fragments,
+                                titel_tekst=titel_tekst, sub_titel_tekst=sub_titel_tekst) 
 
 
 @app.route('/process/start/<process_class_name>/')
@@ -186,18 +199,15 @@ def process_start(process_class_name):
     # Initialise the process thread object.
     cpx = process_class_obj(*args, **kwargs)
 
-    import pdb
-    pdb.set_trace()
-    print "allard check request.args / request.form"
     uploaded_zipfilename = request.args.get('uploaded_zipfilename')
     voorganger = request.args.get('voorganger')
     datum_tekst = request.args.get('datum_tekst')
-    scripture_fragments = request.args.get('scripture_fragments')
+    scripture_fragments = ast.literal_eval(request.args.get('scripture_fragments'))
     titel_tekst = request.args.get('titel_tekst')
     sub_titel_tekst = request.args.get('sub_titel_tekst')
-    liedvolgorde = ast.literal_eval(request.args.get('finalvolgorde'))
+    volgordelist = ast.literal_eval(request.args.get('finalvolgorde'))
     
-    cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfilename, liedvolgorde, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfilename, volgordelist, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpx.start()
     
     if not process_class_name in create_pptx_processes:

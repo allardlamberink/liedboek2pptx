@@ -19,11 +19,12 @@
 <h1>Hello, World!</h1>
 {% endif %}
 <p>Do you want to <a href="{{ url_for('login') }}">log in?</a>
+
+{% if uploaded_zipfilename %}
+<h1>file={{ uploaded_zipfilename|safe }}</h1>
+{% endif %}
 #}
 
-{% if filename %}
-<h1>file=</h1>
-{% endif %}
 <section>
 <h2>Liturgie volgorde</h2>
 
@@ -47,11 +48,12 @@
         <option disabled value="ochtend_avondmaal">Morgendienst avondmaal</option>
     </select><br>
     <label for="voorganger">Voorganger: </label><input type="text" name="voorganger" id="voorganger" value="Ds."><br> 
-    <label for="datum">Datum: </label><input type="text" name="datum" id="datum" value="2017-07-25"><br> 
+    <label for="datum">Datum: </label><input type="text" name="datum" id="datum" value="zondag 20 augustus 2017"><br> 
     <label for="titeltekst">Titeltekst: </label><input type="text" name="titeltekst" id="titeltekst" value="Welkom!"><br> 
     <label for="scripture_fragment_1">Schriftlezing 1: </label><input type="text" name="scripture_fragment_1" id="scripture_fragment_1" value="Mattheus 5: 1-16"><br> 
     <label for="scripture_fragment_2">Schriftlezing 2: </label><input type="text" name="scripture_fragment_2" id="scripture_fragment_2" value="John 3: 16"><br> 
     <input type="hidden" name="liedvolgorde" id="liedvolgorde">
+    <input type="hidden" name="uploaded_zipfilename" id="uploaded_zipfilename" value="{{ uploaded_zipfilename|safe }}">
 </form>
 <br />
 <input type='button' value='Stap 2 - Powerpoint overzicht -->' onclick='summary();'/>
