@@ -1,13 +1,6 @@
-TODO: subdirectories voor submodules implementeren
-TODO: fixen super / uit index halen en in layout zetten
-
-todo 20170723:
-- samenvoegen 2 losse javascripts --> kan niet
-- sorteren --> done
-- fixen scripture fragments --> done
-- input velden voor pptx --ga hier verder mee woensdag
 - wat als er een letter achter het liednummer staat b.v. 84a ???
+- liederen/scriptures op juist volgorde
 - all bible verses in a DB
-
+- foute inhoud zipfile afhandelen?
 
 http://127.0.0.1:5000/

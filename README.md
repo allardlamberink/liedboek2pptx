@@ -13,3 +13,10 @@ default size images from liedboek online: 1600x1200
 
 
 the progresbar library is a forked version of https://github.com/Jaza/fotojazz
+
+
+APP FLOW
+1) /                - upload file
+2) /sortliturgie    - (volgorde liederen maken + invullen dienstgegevens)
+3) /summary         - (controle + buttons voor maken/downloaden powerpoints)
+4) /                - maak ppt / download ppt

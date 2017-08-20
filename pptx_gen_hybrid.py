@@ -127,7 +127,7 @@ def upload_file():
             if allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                flash('upload=suc6')
+                #flash('upload=suc6')
                 return redirect(url_for('sortliturgie', uploaded_zipfilename=filename))
             else:
                 flash('Invalid filetype (only .zip is allowed)')
