@@ -24,6 +24,11 @@
 {% endif %}
 <p>Do you want to <a href="{{ url_for('login') }}">log in?</a>
 #}
+
+{% if session.my_var %}
+<h1>Hello {{ session.my_var }}</h1>
+{% endif %}
+
 <section>
 <h2>Samenvatting / Controle</h2>
 
@@ -60,7 +65,6 @@
     <input type="hidden" name="titel_tekst" id="titel_tekst" value="{{ titel_tekst|safe }}">
     <input type="hidden" name="sub_titel_tekst" id="sub_titel_tekst" value="{{ sub_titel_tekst|safe }}">
     <input type="hidden" name="scripture_fragments" id="scripture_fragments" value="{{ scripture_fragments|safe }}">
-    <input type="hidden" name="uploaded_zipfilename" id="uploaded_zipfilename" value="{{ uploaded_zipfilename|safe }}">
     <input type="submit" value="Maak powerpoint" id="operation-createpptx" />
     <div class="operation-progress" id="operation-createpptx-progress"></div>
   </div><!-- /#operation -->

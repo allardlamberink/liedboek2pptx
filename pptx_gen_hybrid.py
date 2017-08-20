@@ -1,14 +1,11 @@
-''' "pptx-generator v0.1"        
-     initial development start date: 2016-06-26        
-     initial release date: 2017-04-09
-     copyright (c) 2016-2017 by A.D. Lamberink        
+''' "pptx-generator v0.1"
+     initial development start date: 2016-06-26
+     release date: 2017-08-21
+     copyright (c) 2016-2017 by A.D. Lamberink
 '''
 
-# todo: toevoegen uitzondering voor lied 802, hierin wordt het refrein niet correct meegenomen
-# 2017-01-21: mail uit naar liedboek.nu met verzoek om verbetering
-
 import sys
-from flask import Flask, request, redirect, url_for, flash, render_template, make_response, jsonify, send_file
+from flask import Flask, request, redirect, url_for, flash, render_template, make_response, jsonify, send_file, session, send_from_directory
 from werkzeug.utils import secure_filename
 from threading import Thread
 from uuid import uuid4
@@ -22,7 +19,7 @@ create_pptx_processes = {}
 ###################  command_line part ####################
 def start_cmdline():
     # todo: read these parameters from the command-line
-    voorganger = 'Ds. K. Hazeleger'
+    voorganger = 'Ds. <dsnaam>'
     datum_tekst = 'vrijdag 14 april 2017'
     scripture_fragments = ['Johannes 19: 23-30',]
     titel_tekst = 'Welkom!'
@@ -33,7 +30,6 @@ def start_cmdline():
     liedvolgorde = [1,2,3]
     cpp.setparams(upload_path, uploaded_zipfilename, liedvolgorde, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpp.start()
-    #$cpp.CreatePPTXProcess.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     return
 
 
@@ -45,7 +41,7 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-app.secret_key = 'some_secret'
+app.secret_key = '10fa1f0cb41bc5ca2ef8be31fc174dc276f3c06e355359872cdf951615535c1d'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 
@@ -54,58 +50,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 #def hello_world():
 #   return 'Hello, World!'
 
-#@app.route('/favicon.ico')
-#def favicon():
-#    """Renders the favicon."""
-#return send_from_directory(path.join(app.root_path, 'static'),
-#                           'favicon.ico')
-
-
-@app.route('/downloadresult', methods=['GET'])
-def downloadresult():
-    try:
-        file_uuid = secure_filename(request.args.get('file_uuid', ''))
-        if file_uuid:
-            filename = '%s.pptx' % file_uuid
-        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), attachment_filename='hervgemb_presentatie_%s.pptx' % file_uuid, as_attachment=True)
-    except Exception as e:
-        return str(e)
-
-@app.route('/sortliturgie', methods=['GET'])
-def sortliturgie():
-    uploaded_zipfilename = request.args.get('uploaded_zipfilename', None)
-    if not uploaded_zipfilename:
-        flash('geen file geupload')
-        return redirect(url_for('upload_file'))
-    else:
-        uploaded_zipfilename_secure = secure_filename(uploaded_zipfilename)  # secure again
-        uploaded_zipfilename_secure = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_zipfilename_secure)
-        cpp = createpptx.CreatePPTXProcess()
-        zip_obj = cpp.get_zip_obj(uploaded_zipfilename_secure)
-        filenamelist = cpp.get_filenamelist(zip_obj)
-        zip_obj.close()
-        song_couplets = cpp.song_couplets2arr(filenamelist)
-        liturgielijst = []
-        for song, couplets in song_couplets.iteritems():
-            #for couplet in couplets:  # todo: per couplet sorteren mogelijk maken...
-            coupletstr = ', '.join(couplets)
-            liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
-        #liturgielijst = song_couplets   #{ 'title': 'allard', 'Age': 7 }
-        return render_template('sortliturgie.html', name='test van Allard',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure)
-
-
-#@app.route('/login', methods=['GET', 'POST'])
-#def login():
-#    error = None
-#    if request.method == 'POST':
-#        if request.form['username'] != 'admin' or \
-#            request.form['password'] != 'secret':
-#            error = 'Invalid credentials'
-#        else:
-#            flash('You were successfully logged in')
-#            return redirect(url_for('sortliturgie'))
-#    return render_template('login.html', error=error)
-
+@app.route('/favicon.ico')
+def favicon():
+    """Renders the favicon."""
+    return send_from_directory(os.path.join(app.root_path, 'static'),'hervgemb_logo.png')
 
 
 #@app.route('/upload', methods=['GET', 'POST'])
@@ -125,15 +73,49 @@ def upload_file():
             return redirect(request.url)
         if file:
             if allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                uploaded_zipfilename_secure = secure_filename(file.filename)
+                uploaded_zipfilename_secure = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_zipfilename_secure)
+                file.save(uploaded_zipfilename_secure)
+                session['uploaded_zipfilename'] = uploaded_zipfilename_secure
                 #flash('upload=suc6')
-                return redirect(url_for('sortliturgie', uploaded_zipfilename=filename))
+                return redirect(url_for('sortliturgie'))
             else:
                 flash('Invalid filetype (only .zip is allowed)')
 
     return render_template('upload.html', introtekst='Upload nieuw bestand', errormsg=error)
 
+
+@app.route('/sortliturgie', methods=['GET'])
+def sortliturgie():
+    uploaded_zipfilename = session.get('uploaded_zipfilename', None)
+    if not uploaded_zipfilename:
+        flash('geen file geupload')
+        return redirect(url_for('upload_file'))
+    else:
+        cpp = createpptx.CreatePPTXProcess()
+        zip_obj = cpp.get_zip_obj(uploaded_zipfilename)
+        filenamelist = cpp.get_filenamelist(zip_obj)
+        zip_obj.close()
+        song_couplets = cpp.song_couplets2arr(filenamelist)
+        liturgielijst = []
+        for song, couplets in song_couplets.iteritems():
+            coupletstr = ', '.join(couplets)
+            liturgielijst.append([song, coupletstr])
+        session['liturgielijst'] = liturgielijst
+        return render_template('sortliturgie.html')
+
+
+#@app.route('/login', methods=['GET', 'POST'])
+#def login():
+#    error = None
+#    if request.method == 'POST':
+#        if request.form['username'] != 'admin' or \
+#            request.form['password'] != 'secret':
+#            error = 'Invalid credentials'
+#        else:
+#            flash('You were successfully logged in')
+#            return redirect(url_for('sortliturgie'))
+#    return render_template('login.html', error=error)
 
 
 @app.route('/summary', methods=['POST'])
@@ -151,8 +133,9 @@ def summary():
 
         for lied in liedlist:
             finalliturgielijst.append(lied)
+
         
-        uploaded_zipfilename = request.form['uploaded_zipfilename']
+        uploaded_zipfilename = session.get('uploaded_zipfilename', None)
         voorganger = request.form['voorganger']
         datum_tekst = request.form['datum']
         titel_tekst = request.form['titeltekst']
@@ -162,10 +145,21 @@ def summary():
         if request.form['scripture_fragment_2']:
             scripture_fragments.append(request.form['scripture_fragment_2'])
 
-        return render_template('summary.html', uploaded_zipfilename=uploaded_zipfilename, liturgietype=liturgietypestr, 
+        return render_template('summary.html', liturgietype=liturgietypestr, 
                                 finalliturgielijst=finalliturgielijst, 
                                 voorganger=voorganger, datum_tekst=datum_tekst, scripture_fragments=scripture_fragments,
                                 titel_tekst=titel_tekst, sub_titel_tekst=sub_titel_tekst) 
+
+
+@app.route('/downloadresult', methods=['GET'])
+def downloadresult():
+    try:
+        file_uuid = secure_filename(request.args.get('file_uuid', ''))
+        if file_uuid:
+            filename = '%s.pptx' % file_uuid
+        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), attachment_filename='hervgemb_presentatie_%s.pptx' % file_uuid, as_attachment=True)
+    except Exception as e:
+        return str(e)
 
 
 @app.route('/process/start/<process_class_name>/')
@@ -199,13 +193,13 @@ def process_start(process_class_name):
     # Initialise the process thread object.
     cpx = process_class_obj(*args, **kwargs)
 
-    uploaded_zipfilename = request.args.get('uploaded_zipfilename')
-    voorganger = request.args.get('voorganger')
-    datum_tekst = request.args.get('datum_tekst')
-    scripture_fragments = ast.literal_eval(request.args.get('scripture_fragments'))
-    titel_tekst = request.args.get('titel_tekst')
-    sub_titel_tekst = request.args.get('sub_titel_tekst')
-    volgordelist = ast.literal_eval(request.args.get('finalvolgorde'))
+    uploaded_zipfilename = session.get('uploaded_zipfilename', None)
+    volgordelist = ast.literal_eval(session.get('finalvolgorde', None))
+    voorganger = session.get('voorganger', None)
+    datum_tekst = session.get('datum_tekst', None)
+    scripture_fragments = ast.literal_eval(session.get('scripture_fragments', None))
+    titel_tekst = session.get('titel_tekst', None)
+    sub_titel_tekst = session.get('sub_titel_tekst', None)
     
     cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfilename, volgordelist, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpx.start()
@@ -255,11 +249,3 @@ def process_progress(process_class_name):
 if __name__ == "__main__":
     start_cmdline()
     # the web/flask version is started by running runserver.py
-    '''arv = sys.argv[1:]
-    if(len(arv)>0):
-        if arv[0] == '-c':  # start command-line version
-        else:
-            print "invalid argument"
-    else:
-        start_web()
-    '''
