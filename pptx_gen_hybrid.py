@@ -11,7 +11,6 @@ from threading import Thread
 from uuid import uuid4
 import os
 import createpptx
-import ast
 
 app = Flask(__name__)
 create_pptx_processes = {}
@@ -123,32 +122,31 @@ def summary():
     if request.method == 'POST':
         finalliturgielijst = []
         scripture_fragments = []
-        # check if the post request has the file part
+
         if 'liedvolgorde' not in request.form:
             flash('Geen liederen gevonden')
         else:
             liedlist = request.form['liedvolgorde'].split(',')
-            liturgietypestr = request.form['liturgietype']
+            session['liturgietype'] = request.form['liturgietype']
             #flash('Wel liederen gevonden {0}. Liturgietype={1}'.format(liedlist,liturgietypestr))
 
         for lied in liedlist:
             finalliturgielijst.append(lied)
-
+        session['finalliturgielijst'] = finalliturgielijst
         
         uploaded_zipfilename = session.get('uploaded_zipfilename', None)
-        voorganger = request.form['voorganger']
-        datum_tekst = request.form['datum']
-        titel_tekst = request.form['titeltekst']
-        sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+        session['voorganger'] = request.form['voorganger']
+        session['datum_tekst'] = request.form['datum']
+        session['titel_tekst'] = request.form['titeltekst']
+        session['sub_titel_tekst'] = session['datum_tekst'] + '\nVoorganger: ' + session['voorganger']
         if request.form['scripture_fragment_1']:
             scripture_fragments.append(request.form['scripture_fragment_1'])
         if request.form['scripture_fragment_2']:
             scripture_fragments.append(request.form['scripture_fragment_2'])
 
-        return render_template('summary.html', liturgietype=liturgietypestr, 
-                                finalliturgielijst=finalliturgielijst, 
-                                voorganger=voorganger, datum_tekst=datum_tekst, scripture_fragments=scripture_fragments,
-                                titel_tekst=titel_tekst, sub_titel_tekst=sub_titel_tekst) 
+        session['scripture_fragments'] = scripture_fragments
+
+        return render_template('summary.html',)
 
 
 @app.route('/downloadresult', methods=['GET'])
@@ -194,10 +192,10 @@ def process_start(process_class_name):
     cpx = process_class_obj(*args, **kwargs)
 
     uploaded_zipfilename = session.get('uploaded_zipfilename', None)
-    volgordelist = ast.literal_eval(session.get('finalvolgorde', None))
+    volgordelist = session.get('finalliturgielijst', None)
     voorganger = session.get('voorganger', None)
     datum_tekst = session.get('datum_tekst', None)
-    scripture_fragments = ast.literal_eval(session.get('scripture_fragments', None))
+    scripture_fragments = session.get('scripture_fragments', None)
     titel_tekst = session.get('titel_tekst', None)
     sub_titel_tekst = session.get('sub_titel_tekst', None)
     

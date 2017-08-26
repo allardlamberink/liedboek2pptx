@@ -13,17 +13,6 @@
 {% endblock %}
 
 {% block body %}
-{# {% if name %}
-<h1>Hello {{ name }}!</h1>
-{% else %}
-<h1>Hello, World!</h1>
-{% endif %}
-<p>Do you want to <a href="{{ url_for('login') }}">log in?</a>
-
-{% if uploaded_zipfilename %}
-<h1>file={{ uploaded_zipfilename|safe }}</h1>
-{% endif %}
-#}
 
 <section>
 <h2>Liturgie volgorde</h2>
@@ -32,7 +21,7 @@
 <p>Sleep de liederen met de muis in de juiste volgorde:</p>
 <ol class="sortable list">
 
-{% for song in liturgielijst %}
+{% for song in session.liturgielijst %}
 <li id="{{song[0]|safe}}">{{ song[0]|safe }}: {{ song[1]|safe }}</li>  {#|safe#}
 {% endfor %}
 </ol>

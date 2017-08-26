@@ -17,29 +17,18 @@
 {% endblock head %}
 
 {% block body %}
-{# {% if name %}
-<h1>Hello {{ name }}!</h1>
-{% else %}
-<h1>Hello, World!</h1>
-{% endif %}
-<p>Do you want to <a href="{{ url_for('login') }}">log in?</a>
-#}
-
-{% if session.my_var %}
-<h1>Hello {{ session.my_var }}</h1>
-{% endif %}
 
 <section>
 <h2>Samenvatting / Controle</h2>
 
-{% if liturgietype %}
-	<p>Gelecteerd liturgietype: {{ liturgietype|safe }}</p>
+{% if session.liturgietype %}
+	<p>Gelecteerd liturgietype: {{ session.liturgietype|safe }}</p>
 {% endif %}
 
-{% if finalliturgielijst %}
+{% if session.finalliturgielijst %}
 <ol class="sortable list">
 
-{% for song in finalliturgielijst %}
+{% for song in session.finalliturgielijst %}
 	<li id="{{song|safe}}">{{ song|safe }}</li>
 {% endfor %}
 
@@ -59,12 +48,6 @@
 <form action="/" method="post">
 <div id="operations" class="grid_6">
   <div class="operation">
-    <input type="hidden" name="liedvolgorde" id="liedvolgorde" value="{{ finalliturgielijst|safe }}">
-    <input type="hidden" name="voorganger" id="voorganger" value="{{ voorganger|safe }}">
-    <input type="hidden" name="datum_tekst" id="datum_tekst" value="{{ datum_tekst|safe }}">
-    <input type="hidden" name="titel_tekst" id="titel_tekst" value="{{ titel_tekst|safe }}">
-    <input type="hidden" name="sub_titel_tekst" id="sub_titel_tekst" value="{{ sub_titel_tekst|safe }}">
-    <input type="hidden" name="scripture_fragments" id="scripture_fragments" value="{{ scripture_fragments|safe }}">
     <input type="submit" value="Maak powerpoint" id="operation-createpptx" />
     <div class="operation-progress" id="operation-createpptx-progress"></div>
   </div><!-- /#operation -->
