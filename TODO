@@ -1,7 +1,11 @@
+- liederen/scriptures op juiste volgorde van liturgie type
+
 - wat als er een letter achter het liednummer staat b.v. 84a ???
-- liederen/scriptures op juist volgorde
 - all bible verses in a DB
 - foute inhoud zipfile afhandelen?
 - toevoegen uitzondering voor lied 802, hierin wordt het refrein niet correct meegenomen
 - settings naar localsettings brengen en laden vanaf file
-- 20170820: verder met ombouwen naar sessions
+
+
+done
+- 20170820: verder met ombouwen naar sessions --> done 20170826
