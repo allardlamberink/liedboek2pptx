@@ -1,5 +1,4 @@
 packages:
   yum:
-    postgresql-devel: []
     libjpeg-turbo-devel: []
     libpng-devel: []
