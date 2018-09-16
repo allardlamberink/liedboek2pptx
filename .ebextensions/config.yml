@@ -1,4 +1,0 @@
-packages:
-  yum:
-    libjpeg-turbo-devel: []
-    libpng-devel: []
