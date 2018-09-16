@@ -16,7 +16,7 @@ import os
 import createpptx
 import ast
 
-app = Flask(__name__)
+application = Flask(__name__)
 create_pptx_processes = {}
 
 ###################  command_line part ####################
@@ -28,7 +28,7 @@ def start_cmdline():
     titel_tekst = 'Welkom!'
     sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
     uploaded_zipfilename = 'liedboek.zip'
-    upload_path = app.config['UPLOAD_FOLDER']
+    upload_path = application.config['UPLOAD_FOLDER']
     cpp = createpptx.CreatePPTXProcess(file_uuid='cmdlineversion')
     liedvolgorde = [1,2,3]
     cpp.setparams(upload_path, uploaded_zipfilename, liedvolgorde, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
@@ -45,9 +45,9 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-app.secret_key = 'some_secret'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
+application.secret_key = 'some_secret'
+application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+application.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 
 
 #@app.route('/')
@@ -61,17 +61,17 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # max 16 MB
 #                           'favicon.ico')
 
 
-@app.route('/downloadresult', methods=['GET'])
+@application.route('/downloadresult', methods=['GET'])
 def downloadresult():
     try:
         file_uuid = secure_filename(request.args.get('file_uuid', ''))
         if file_uuid:
             filename = '%s.pptx' % file_uuid
-        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), attachment_filename='hervgemb_presentatie_%s.pptx' % file_uuid, as_attachment=True)
+        return send_file(os.path.join(application.config['UPLOAD_FOLDER'], filename), attachment_filename='hervgemb_presentatie_%s.pptx' % file_uuid, as_attachment=True)
     except Exception as e:
         return str(e)
 
-@app.route('/sortliturgie', methods=['GET'])
+@application.route('/sortliturgie', methods=['GET'])
 def sortliturgie():
     uploaded_zipfilename = request.args.get('uploaded_zipfilename', None)
     if not uploaded_zipfilename:
@@ -79,7 +79,7 @@ def sortliturgie():
         return redirect(url_for('upload_file'))
     else:
         uploaded_zipfilename_secure = secure_filename(uploaded_zipfilename)  # secure again
-        uploaded_zipfilename_secure = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_zipfilename_secure)
+        uploaded_zipfilename_secure = os.path.join(application.config['UPLOAD_FOLDER'], uploaded_zipfilename_secure)
         cpp = createpptx.CreatePPTXProcess()
         zip_obj = cpp.get_zip_obj(uploaded_zipfilename_secure)
         filenamelist = cpp.get_filenamelist(zip_obj)
@@ -109,7 +109,7 @@ def sortliturgie():
 
 
 #@app.route('/upload', methods=['GET', 'POST'])
-@app.route('/', methods=['GET', 'POST'])
+@application.route('/', methods=['GET', 'POST'])
 def upload_file():
     error=None
     if request.method == 'POST':
@@ -126,7 +126,7 @@ def upload_file():
         if file:
             if allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                file.save(os.path.join(application.config['UPLOAD_FOLDER'], filename))
                 #flash('upload=suc6')
                 return redirect(url_for('sortliturgie', uploaded_zipfilename=filename))
             else:
@@ -136,7 +136,7 @@ def upload_file():
 
 
 
-@app.route('/summary', methods=['POST'])
+@application.route('/summary', methods=['POST'])
 def summary():
     if request.method == 'POST':
         finalliturgielijst = []
@@ -168,7 +168,7 @@ def summary():
                                 titel_tekst=titel_tekst, sub_titel_tekst=sub_titel_tekst) 
 
 
-@app.route('/process/start/<process_class_name>/')
+@application.route('/process/start/<process_class_name>/')
 def process_start(process_class_name):
     process_module_name = process_class_name
     #if process_class_name != 'CreatePPTXProcess':
@@ -207,7 +207,7 @@ def process_start(process_class_name):
     sub_titel_tekst = request.args.get('sub_titel_tekst')
     volgordelist = ast.literal_eval(request.args.get('finalvolgorde'))
     
-    cpx.setparams(app.config['UPLOAD_FOLDER'], uploaded_zipfilename, volgordelist, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    cpx.setparams(application.config['UPLOAD_FOLDER'], uploaded_zipfilename, volgordelist, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpx.start()
     
     if not process_class_name in create_pptx_processes:
@@ -224,7 +224,7 @@ def process_start(process_class_name):
     return jsonify(key=key, percent=percent_done, done=done)
 
 
-@app.route('/process/progress/<process_class_name>/')
+@application.route('/process/progress/<process_class_name>/')
 def process_progress(process_class_name):
     key = request.args.get('key', '', type=str)
     
