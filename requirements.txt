@@ -1,3 +1,4 @@
 Flask==1.0.2
 python-pptx==0.6.10
 Pillow==3.2.0
+mod-wsgi==4.6.4
