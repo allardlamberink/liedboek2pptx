@@ -132,7 +132,7 @@ def upload_file():
             else:
                 flash('Invalid filetype (only .zip is allowed)')
 
-    return render_template('upload.html', introtekst='Upload nieuw bestand', errormsg=error)
+    return render_template('upload.html', introtekst='Upload liedboek.nu zip-bestand', errormsg=error)
 
 
 

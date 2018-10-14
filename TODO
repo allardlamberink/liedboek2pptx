@@ -1,4 +1,4 @@
-- wat als er een letter achter het liednummer staat b.v. 84a ???
+- wat als er een letter achter het liednummer staat b.v. 84a ??? --> geen probleem
 - liederen/scriptures op juist volgorde
 - all bible verses in a DB
 - foute inhoud zipfile afhandelen?
@@ -11,10 +11,16 @@ todo 20170723:
 - all bible verses in a DB
 - samenvoegen 2 losse javascripts --> kan niet
 
-testen:
-wat als er een letter achter het liednummer staat b.v. 84a ???
 
 
 http://127.0.0.1:5000/
 
 
+LEGE schrijftlezing 2 crasht....
+lied 1,2,3,14 --> wordt 1,14,2,3
+
+
+eb config --> instancetype naar t2.nano
+
+eb create --instance_type t2.nano
+afterward add port 443
