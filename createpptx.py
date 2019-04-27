@@ -222,7 +222,7 @@ class CreatePPTXProcess(Thread):
     
         standaard_ochtenddienst_layout = ['titel', 'liturgie', 'lied1',
                     'Stil gebed\n-\nVotum en Groet', 'lied2', 'Lezing van Gods gebod',
-                    'lied3', 'Gebed om de opening van het Woord', 'Projectlied via de beamer',
+                    'lied3', 'Gebed om de opening van het Woord', 'Kinderlied via de beamer',
                     'Kinderen komen naar voren en gaan naar de kindernevendienst',
                     'schriftlezing1', 'lied4', 'Verkondiging', 'lied5', 'Dankgebed',
                     'Inzameling van de gaven', 'lied6', 'Zegen']
