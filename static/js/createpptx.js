@@ -22,6 +22,7 @@ createpptx.operations = function() {
                 'uploaded_zipfilename': $('#uploaded_zipfilename').val(),
                 'finalvolgorde': $('#liedvolgorde').val(),
                 'voorganger': $('#voorganger').val(),
+                'organist': $('#organist').val(),
                 'datum_tekst': $('#datum_tekst').val(),
                 'scripture_fragments': $('#scripture_fragments').val(),
                 'titel_tekst': $('#titel_tekst').val(),

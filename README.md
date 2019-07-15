@@ -20,3 +20,10 @@ APP FLOW
 2) /sortliturgie    - (volgorde liederen maken + invullen dienstgegevens)
 3) /summary         - (controle + buttons voor maken/downloaden powerpoints)
 4) /                - maak ppt / download ppt
+
+
+enable debugging mode by setting environment variable
+
+export FLASK_ENV=development
+
+

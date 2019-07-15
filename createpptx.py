@@ -7,6 +7,7 @@ import zipfile
 import StringIO
 from pptx import Presentation
 from pptx.util import Cm
+from pptx.enum.text import MSO_AUTO_SIZE,MSO_ANCHOR
 from PIL import Image
 import os
 from collections import OrderedDict
@@ -19,6 +20,7 @@ class CreatePPTXProcess(Thread):
     upload_path = None
     uploaded_zipfilename = None
     voorganger = None
+    organist = None
     datum_tekst = None
     scripture_fragments = None
     titel_tekst = None
@@ -32,12 +34,15 @@ class CreatePPTXProcess(Thread):
         self.key = kwargs.get('file_uuid', None)
 
 
-    def setparams(self, upload_path, uploaded_zipfilename, liedvolgorde, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+    def setparams(self, upload_path, uploaded_zipfilename, liedvolgorde, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         self.upload_path = upload_path
         self.uploaded_zipfilename = uploaded_zipfilename
         self.voorganger = voorganger
+        self.organist = organist
         self.datum_tekst = datum_tekst
-        self.scripture_fragments = scripture_fragments #['Mattheus 5: 1-15', 'John 3: 16']
+        self.scripture_fragments = []
+        for scripture_fragment in scripture_fragments:  #['Mattheus 5: 1-15', 'John 3: 16']
+            self.scripture_fragments.append(scripture_fragment.decode('utf-8'))
         self.titel_tekst = titel_tekst
         self.sub_titel_tekst = sub_titel_tekst #+ '\nVoorganger: ' + voorganger
         self.liedvolgorde = liedvolgorde
@@ -157,9 +162,16 @@ class CreatePPTXProcess(Thread):
     
         # set title
         title = slide.shapes.title
-        title.text = tekst
-        #title.left = Cm(3.30)
-        #title.top = Cm(1.50)
+
+        text_frame = title.text_frame
+        text_frame.clear()
+        p = text_frame.paragraphs[0]
+        run = p.add_run()
+        run.text = tekst
+        num_lines=len(tekst.split('\n'))
+        title.height*=num_lines
+        title.width=prs.slide_width
+        title.top=(prs.slide_height/2/num_lines)+(title.height/num_lines)
 
 
     def create_index_slide(self, prs, song_couplets, scripture_fragments, datum_tekst):
@@ -183,7 +195,8 @@ class CreatePPTXProcess(Thread):
                 title_text += song_couplets[song_num][c_idx] + (', ' if  c_idx < len(song_couplets[song_num])-1 else '')
             subtitle.text += title_text + '\n'
         for idx in range(0, len(scripture_fragments)):
-            subtitle.text += '\nSchriftlezing {0}: {1}'.format(idx+1, scripture_fragments[idx])
+            scripture_title = u'\nSchriftlezing {0}: {1}'.format(idx+1, scripture_fragments[idx])
+            subtitle.text += scripture_title
 
 
     def get_zip_obj(self, zipfilename):
@@ -200,7 +213,7 @@ class CreatePPTXProcess(Thread):
         return filenamelist
 
 
-    def create_ppt(self, uploaded_zipfilename, volgordelist, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+    def create_ppt(self, uploaded_zipfilename, volgordelist, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         pptx_template_file = 'template.pptx'
         zip_obj = self.get_zip_obj(uploaded_zipfilename)
         filenamelist = self.get_filenamelist(zip_obj)
@@ -217,15 +230,15 @@ class CreatePPTXProcess(Thread):
         self.create_index_slide(prs, song_couplets_sorted, scripture_fragments, datum_tekst)
         idx = 1
         for scripture_fragment in scripture_fragments:
-            self.create_scripture_slide(prs, "Schriftlezing {0}: {1}".format(idx, scripture_fragment), "<tekst van {0} hier plakken>".format(scripture_fragment))
+            self.create_scripture_slide(prs, u'Schriftlezing {0}: {1}'.format(idx, scripture_fragment), u'<tekst van {0} hier plakken>'.format(scripture_fragment))
             idx += 1
     
         standaard_ochtenddienst_layout = ['titel', 'liturgie', 'lied1',
                     'Stil gebed\n-\nVotum en Groet', 'lied2', 'Lezing van Gods gebod',
-                    'lied3', 'Gebed om de opening van het Woord', 'Kinderlied via de beamer',
-                    'Kinderen komen naar voren en gaan naar de kindernevendienst',
+                    'lied3', 'Gebed om de opening\nvan het Woord', 'Kinderlied',
+                    'Kinderen komen naar voren en\ngaan naar de kindernevendienst',
                     'schriftlezing1', 'lied4', 'Verkondiging', 'lied5', 'Dankgebed',
-                    'Inzameling van de gaven', 'lied6', 'Zegen']
+                    'Inzameling van de gaven', 'Kinderen komen terug van\nde kindernevendienst', 'lied6', 'Zegen']
         standaard_avonddienst_layout = ['titel', 'liturgie', 'lied1', 'Stil gebed\n-\nVotum en Groet',
                         'lied2', 'Gebed om de opening van het Woord', 'schriftlezing1',
                         'lied4', 'Verkondiging', 'lied5', 'Geloofsbelijdenis', 'lied6',
@@ -259,7 +272,7 @@ class CreatePPTXProcess(Thread):
 
     def run(self):
         if self.params_are_set and self.key:
-            self.create_ppt(self.uploaded_zipfilename, self.liedvolgorde, self.voorganger, self.datum_tekst, self.scripture_fragments, self.titel_tekst, self.sub_titel_tekst)
+            self.create_ppt(self.uploaded_zipfilename, self.liedvolgorde, self.voorganger, self.organist, self.datum_tekst, self.scripture_fragments, self.titel_tekst, self.sub_titel_tekst)
         else:
             print "make sure all parameters and key are set"
 

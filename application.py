@@ -12,6 +12,7 @@ from flask import Flask, request, redirect, url_for, flash, render_template, mak
 from werkzeug.utils import secure_filename
 from threading import Thread
 from uuid import uuid4
+from datetime import date, timedelta
 import os
 import createpptx
 import ast
@@ -22,16 +23,17 @@ create_pptx_processes = {}
 ###################  command_line part ####################
 def start_cmdline():
     # todo: read these parameters from the command-line
-    voorganger = 'Ds. K. Hazeleger'
-    datum_tekst = 'vrijdag 14 april 2017'
+    voorganger = 'Ds. naam'
+    organist = 'Organist naam'
+    datum_tekst = 'vrijdag 14 april 2018'
     scripture_fragments = ['Johannes 19: 23-30',]
     titel_tekst = 'Welkom!'
-    sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+    sub_titel_tekst = datum_tekst + u'\nVoorganger: ' + voorganger + u'\nOrganist: ' + organist
     uploaded_zipfilename = 'liedboek.zip'
     upload_path = application.config['UPLOAD_FOLDER']
     cpp = createpptx.CreatePPTXProcess(file_uuid='cmdlineversion')
     liedvolgorde = [1,2,3]
-    cpp.setparams(upload_path, uploaded_zipfilename, liedvolgorde, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    cpp.setparams(upload_path, uploaded_zipfilename, liedvolgorde, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpp.start()
     #$cpp.CreatePPTXProcess.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     return
@@ -86,12 +88,14 @@ def sortliturgie():
         zip_obj.close()
         song_couplets = cpp.song_couplets2arr(filenamelist)
         liturgielijst = []
+        maanden = ['dummy', 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
+        next_sunday_date = (date.today() + timedelta( (6-date.today().weekday()) % 7 )).strftime("zondag %d {0} %Y".format(maanden[date.today().month]))
         for song, couplets in song_couplets.iteritems():
             #for couplet in couplets:  # todo: per couplet sorteren mogelijk maken...
             coupletstr = ', '.join(couplets)
             liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
         #liturgielijst = song_couplets   #{ 'title': 'allard', 'Age': 7 }
-        return render_template('sortliturgie.html', name='test van Allard',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure)
+        return render_template('sortliturgie.html', name='test van Allard',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure, next_sunday_date=next_sunday_date)
 
 
 #@app.route('/login', methods=['GET', 'POST'])
@@ -154,17 +158,18 @@ def summary():
         
         uploaded_zipfilename = request.form['uploaded_zipfilename']
         voorganger = request.form['voorganger']
+        organist = request.form['organist']
         datum_tekst = request.form['datum']
         titel_tekst = request.form['titeltekst']
-        sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger
+        sub_titel_tekst = datum_tekst + '\nVoorganger: ' + voorganger + '\nOrganist: ' + organist
         if request.form['scripture_fragment_1']:
-            scripture_fragments.append(request.form['scripture_fragment_1'])
+            scripture_fragments.append(request.form['scripture_fragment_1'].encode('utf-8'))
         if request.form['scripture_fragment_2']:
-            scripture_fragments.append(request.form['scripture_fragment_2'])
+            scripture_fragments.append(request.form['scripture_fragment_2'].encode('utf-8'))
 
         return render_template('summary.html', uploaded_zipfilename=uploaded_zipfilename, liturgietype=liturgietypestr, 
                                 finalliturgielijst=finalliturgielijst, 
-                                voorganger=voorganger, datum_tekst=datum_tekst, scripture_fragments=scripture_fragments,
+                                voorganger=voorganger, organist=organist, datum_tekst=datum_tekst, scripture_fragments=scripture_fragments,
                                 titel_tekst=titel_tekst, sub_titel_tekst=sub_titel_tekst) 
 
 
@@ -201,13 +206,14 @@ def process_start(process_class_name):
 
     uploaded_zipfilename = request.args.get('uploaded_zipfilename')
     voorganger = request.args.get('voorganger')
+    organist = request.args.get('organist')
     datum_tekst = request.args.get('datum_tekst')
     scripture_fragments = ast.literal_eval(request.args.get('scripture_fragments'))
     titel_tekst = request.args.get('titel_tekst')
     sub_titel_tekst = request.args.get('sub_titel_tekst')
     volgordelist = ast.literal_eval(request.args.get('finalvolgorde'))
     
-    cpx.setparams(application.config['UPLOAD_FOLDER'], uploaded_zipfilename, volgordelist, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    cpx.setparams(application.config['UPLOAD_FOLDER'], uploaded_zipfilename, volgordelist, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpx.start()
     
     if not process_class_name in create_pptx_processes:
