@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-from threading import Thread
-from time import sleep
 import zipfile
 import StringIO
 from pptx import Presentation
@@ -13,7 +11,7 @@ import os
 from collections import OrderedDict
 
 
-class CreatePPTXProcess(Thread):
+class CreatePPTXProcess:
     params_are_set = False
     total_file_count = 0
     files_processed_count = 0
@@ -29,9 +27,7 @@ class CreatePPTXProcess(Thread):
  
 
     def __init__(self, *args, **kwargs):
-        Thread.__init__(self)
         self.files_processed_count = 0
-        self.key = kwargs.get('file_uuid', None)
 
 
     def setparams(self, upload_path, uploaded_zipfilename, liedvolgorde, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
@@ -214,6 +210,7 @@ class CreatePPTXProcess(Thread):
 
 
     def create_ppt(self, uploaded_zipfilename, volgordelist, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+        retval = False
         pptx_template_file = 'template.pptx'
         zip_obj = self.get_zip_obj(uploaded_zipfilename)
         filenamelist = self.get_filenamelist(zip_obj)
@@ -251,6 +248,9 @@ class CreatePPTXProcess(Thread):
         for filename in sorted_filenamelist:
             if filename[-3:] == 'png':
                 print 'processing img: {0}'.format(filename)
+                import pdb
+                pdb.set_trace()
+                flash('processing img: {0}'.format(filename))
                 self.files_processed_count += 1
                 song_img_data = zip_obj.read(filename)
                 img = Image.open(StringIO.StringIO(song_img_data))
@@ -264,21 +264,25 @@ class CreatePPTXProcess(Thread):
                 song_title = self.get_song_title_text(filename, song_couplets_sorted)
                 self.create_song_slide(prs, song_title, img3)
 
-        file_with_path = os.path.join(self.upload_path, self.key)
+        file_with_path = os.path.join(self.upload_path, 'pptx_gen')
         prs.save('%s.pptx' % file_with_path)
-        print "powerpoint created... {0}".format(self.key)
+        print "powerpoint created... {0}".format('pptx_gen')
         zip_obj.close()
+        retval = '%s.pptx' % file_with_path
+        return retval
 
 
     def run(self):
-        if self.params_are_set and self.key:
-            self.create_ppt(self.uploaded_zipfilename, self.liedvolgorde, self.voorganger, self.organist, self.datum_tekst, self.scripture_fragments, self.titel_tekst, self.sub_titel_tekst)
+        retval = False
+        if self.params_are_set:
+            retval = self.create_ppt(self.uploaded_zipfilename, self.liedvolgorde, self.voorganger, self.organist, self.datum_tekst, self.scripture_fragments, self.titel_tekst, self.sub_titel_tekst)
         else:
-            print "make sure all parameters and key are set"
+            print "make sure all parameters are set"
+        return retval
 
 
     def percent_done(self):
-        """Gets the current percent done for the thread."""
+        """Gets the current percent done"""
         if self.total_file_count != 0:
             return float(self.files_processed_count) / float(self.total_file_count) * 100.0
         else:
@@ -286,33 +290,7 @@ class CreatePPTXProcess(Thread):
 
 
     def get_progress(self):
-        """Can be called at any time before, during or after thread
+        """Can be called at any time before, during or after 
         execution, to get current progress."""
         return '%d files (%.2f%%)' % (self.files_processed_count, self.percent_done())
 
-
-class CreatePPTXProcessShellRun(object):
-    """Runs an instance of the thread with shell output / feedback."""
-    
-    def __init__(self, init_class=CreatePPTXProcess):
-        self.init_class = init_class
-
-
-    def __call__(self, *args, **kwargs):
-        cxp = self.init_class(*args, **kwargs)
-
-        print '%s threaded process beginning.' % cxp.__class__.__name__
-        print '%d files will be processed. ' % cxp.total_file_count + 'Now beginning progress output.' 
-        print cxp.get_progress()
-
-        cxp.start()
-
-        while cxp.is_alive() and cxp.files_processed_count < cxp.total_file_count:
-            sleep(1.0)
-            print cxp.get_progress()
-
-        print '%s threaded process complete. Now exiting.' % cxp.__class__.__name__
-
-
-if __name__ == '__main__':
-    CreatePPTXProcessShellRun()()

@@ -11,7 +11,6 @@
 
 {#{% block extra_js %}#}
 <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.ui.progressbar.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/createpptx.js') }}"></script>
 {#{% endblock extra_js %}#}
 
 {% endblock head %}
@@ -51,7 +50,7 @@
 <h2>Maken powerpoint</h2>
 <p>Is bovenstaande volgorde correct?</p><p>Klik dan op "Maak powerpoint" om de presentatie te genereren. Zie je nog foutjes, ga dan terug naar de vorige pagina.</p>
 
-<form action="/" method="post">
+<form action="{{ urlforcreatepptx }}" method="post">
 <div id="operations" class="grid_6">
   <div class="operation">
     <input type="hidden" name="liedvolgorde" id="liedvolgorde" value="{{ finalliturgielijst|safe }}">
@@ -70,7 +69,7 @@
 
 <div class="operation-finished" id="operation-finished">
     <p><b>klaar, klik om te downloaden...</b></p>
-    <form action="/downloadresult" method=get enctype=multipart/form-data>
+    <form action="{{ urlfordownloadresult }}" method=get enctype=multipart/form-data>
 	    <input type="hidden" name="file_uuid" id="file_uuid">
         <input type=submit value="Download">
     </form>

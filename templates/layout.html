@@ -2,6 +2,7 @@
 <head>
 {% block head %}
 	<title>Hervgembeerzerveld powerpoint generator</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='hervgemb_logo.png') }}">
     {#{% block extra_css %}{% endblock extra_css %} #}
     <script type="text/javascript">var SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.2.0.min.js') }}"></script>

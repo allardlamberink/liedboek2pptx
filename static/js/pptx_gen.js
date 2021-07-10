@@ -1,5 +1,3 @@
-var createpptx = createpptx || {};
-
 function summary() {
 	var songorder="";
 	$('.sortable li').each(function(i) {
