@@ -4,7 +4,7 @@ import sys
 from threading import Thread
 from time import sleep
 import zipfile
-import StringIO
+import io
 from pptx import Presentation
 from pptx.util import Cm
 from pptx.enum.text import MSO_AUTO_SIZE,MSO_ANCHOR
@@ -132,11 +132,11 @@ class CreatePPTXProcess(Thread):
         left = Cm(3.29)
         top = Cm(1.94)
         #pic = slide.shapes.add_picture(song_img_data, left, top)
-        img4= StringIO.StringIO(song_img_data.getvalue())
+        img4= io.BytesIO(song_img_data.getvalue())
         pic = slide.shapes.add_picture(img4, left, top)
         #pic = slide.shapes.add_picture(song_img_data, left, top)
-        pic.height=pic.height/3
-        pic.width=pic.width/3
+        pic.height=int(pic.height/3)
+        pic.width=int(pic.width/3)
 
 
     def create_scripture_slide(self, prs, scripture_title, scripture_text):
@@ -171,7 +171,7 @@ class CreatePPTXProcess(Thread):
         num_lines=len(tekst.split('\n'))
         title.height*=num_lines
         title.width=prs.slide_width
-        title.top=(prs.slide_height/2/num_lines)+(title.height/num_lines)
+        title.top=int((prs.slide_height/2/num_lines)+(title.height/num_lines))
 
 
     def create_index_slide(self, prs, song_couplets, scripture_fragments, datum_tekst):
@@ -250,15 +250,15 @@ class CreatePPTXProcess(Thread):
         #total_file_count = len(filenamelist)
         for filename in sorted_filenamelist:
             if filename[-3:] == 'png':
-                print 'processing img: {0}'.format(filename)
+                print('processing img: {0}'.format(filename))
                 self.files_processed_count += 1
                 song_img_data = zip_obj.read(filename)
-                img = Image.open(StringIO.StringIO(song_img_data))
+                img = Image.open(io.BytesIO(song_img_data))
                 #img = Image.open(song_img_data)
                 width, height = img.size
                 img2 = img.crop((0, 150 , width, height))  #origineel komt binnen als 1600x1200 (haal van de bovenkant 150 px af
                 # do not do any resizing here, but leave the original size and resizing using the height en width attributes of the shape (picture object), because this results in a sharper image
-                img3 = StringIO.StringIO()
+                img3 = io.BytesIO()
                 img2.save(img3, format='PNG', quality=100)
     
                 song_title = self.get_song_title_text(filename, song_couplets_sorted)
@@ -266,7 +266,7 @@ class CreatePPTXProcess(Thread):
 
         file_with_path = os.path.join(self.upload_path, self.key)
         prs.save('%s.pptx' % file_with_path)
-        print "powerpoint created... {0}".format(self.key)
+        print("powerpoint created... {0}".format(self.key))
         zip_obj.close()
 
 
@@ -274,7 +274,7 @@ class CreatePPTXProcess(Thread):
         if self.params_are_set and self.key:
             self.create_ppt(self.uploaded_zipfilename, self.liedvolgorde, self.voorganger, self.organist, self.datum_tekst, self.scripture_fragments, self.titel_tekst, self.sub_titel_tekst)
         else:
-            print "make sure all parameters and key are set"
+            print("make sure all parameters and key are set")
 
 
     def percent_done(self):
@@ -301,17 +301,17 @@ class CreatePPTXProcessShellRun(object):
     def __call__(self, *args, **kwargs):
         cxp = self.init_class(*args, **kwargs)
 
-        print '%s threaded process beginning.' % cxp.__class__.__name__
-        print '%d files will be processed. ' % cxp.total_file_count + 'Now beginning progress output.' 
-        print cxp.get_progress()
+        print('%s threaded process beginning.' % cxp.__class__.__name__)
+        print('%d files will be processed. ' % cxp.total_file_count + 'Now beginning progress output.')
+        print(cxp.get_progress())
 
         cxp.start()
 
         while cxp.is_alive() and cxp.files_processed_count < cxp.total_file_count:
             sleep(1.0)
-            print cxp.get_progress()
+            print(cxp.get_progress())
 
-        print '%s threaded process complete. Now exiting.' % cxp.__class__.__name__
+        print('%s threaded process complete. Now exiting.' % cxp.__class__.__name__)
 
 
 if __name__ == '__main__':

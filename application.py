@@ -35,7 +35,7 @@ def start_cmdline():
     liedvolgorde = [1,2,3]
     cpp.setparams(upload_path, uploaded_zipfilename, liedvolgorde, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpp.start()
-    #$cpp.CreatePPTXProcess.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    #cpp.CreatePPTXProcess.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     return
 
 
@@ -90,7 +90,7 @@ def sortliturgie():
         liturgielijst = []
         maanden = ['dummy', 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
         next_sunday_date = (date.today() + timedelta( (6-date.today().weekday()) % 7 )).strftime("zondag %d {0} %Y".format(maanden[date.today().month]))
-        for song, couplets in song_couplets.iteritems():
+        for song, couplets in song_couplets.items():
             #for couplet in couplets:  # todo: per couplet sorteren mogelijk maken...
             coupletstr = ', '.join(couplets)
             liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     if(len(arv)>0):
         if arv[0] == '-c':  # start command-line version
         else:
-            print "invalid argument"
+            print("invalid argument")
     else:
         start_web()
     '''
