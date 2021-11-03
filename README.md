@@ -27,3 +27,7 @@ enable debugging mode by setting environment variable
 export FLASK_ENV=development
 
 test update 20191011
+
+
+docker build -t myimage .
+docker run -d --name mycontainer9 -p 8000:80 -p 5000:5000 myimage

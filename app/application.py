@@ -236,7 +236,8 @@ def process_progress(process_class_name):
     
     if not process_class_name in create_pptx_processes:
         create_pptx_processes[process_class_name] = {}
-    
+    #print("allard key = {0}".format(key))
+    #print("allard process_class_name = {0}".format(process_class_name))
     if not key in create_pptx_processes[process_class_name]:
         return jsonify(error='Invalid process key.')
     

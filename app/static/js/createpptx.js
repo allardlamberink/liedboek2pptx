@@ -55,11 +55,10 @@ createpptx.operations = function() {
                               process_class_name,
                               key) {
             base_url = SCRIPT_ROOT + '/process/progress/' + process_class_name + '/';
-            $.getJSON(base_url,
-            {
-                'key': key,
-                _: new Date().getTime()
-            }, function( data ) {
+
+            $.getJSON(base_url, {'key': String(key)},
+            function( data ) {
+                var tmp = String(data);
                 $('#operation-' + process_css_name + '-progress').progressbar('option', 'value', data.percent);
                 if (!data.done) {
                     setTimeout(function() {
