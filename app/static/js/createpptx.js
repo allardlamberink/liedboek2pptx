@@ -55,15 +55,16 @@ createpptx.operations = function() {
                               process_class_name,
                               key) {
             base_url = SCRIPT_ROOT + '/process/progress/' + process_class_name + '/';
-
-            $.getJSON(base_url, {'key': String(key)},
-            function( data ) {
-                var tmp = String(data);
+	    $.ajax({
+             cache: false,
+             url: base_url + '?key=' + String(key),
+	     dataType: "json",
+             success: function(data) {
                 $('#operation-' + process_css_name + '-progress').progressbar('option', 'value', data.percent);
                 if (!data.done) {
                     setTimeout(function() {
                         process_progress(process_css_name, process_class_name, data.key);
-                    }, 100);
+                    }, 150);
                 }
                 else {
                     $('#operation-' + process_css_name).removeAttr('disabled');
@@ -71,7 +72,7 @@ createpptx.operations = function() {
                     $('#operation-' + process_css_name + '-progress').progressbar('option', 'disabled', true);
                     operation_finished(key);
                 }
-                
+	     }
             });
     }
 
