@@ -72,8 +72,8 @@ createpptx.operations = function() {
                     $('#operation-' + process_css_name + '-progress').progressbar('option', 'disabled', true);
                     operation_finished(key);
                 }
-	     }
-            });
+	        }
+        });
     }
 
 
