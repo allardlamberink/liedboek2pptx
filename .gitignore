@@ -1,8 +1,5 @@
 *.DS_Store
 *.pyc
 liedboek.zip
-
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
+TODO
+tests/
