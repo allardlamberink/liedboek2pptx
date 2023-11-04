@@ -10,7 +10,7 @@ from flask import Flask, request, redirect, url_for, flash, render_template, mak
 from werkzeug.utils import secure_filename
 from threading import Thread
 from uuid import uuid4
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import os
 import createpptx
 import ast
@@ -21,12 +21,12 @@ sw_ver = '0.2'
 
 ###################  command_line part ####################
 def start_cmdline():
-    # todo: read these parameters from the command-line
+    # todo: read these parameters from the command-line or change this cmdline part of the app to a py.TEST
     voorganger = 'Ds. naam'
     organist = 'Organist naam'
     datum_tekst = 'vrijdag 14 april 2018'
     #scripture_fragments = ['Johannes 19: 23-30','Mattheüs 3: 15-20']
-    scripture_fragments = ['Johannes 19: 23-30',]
+    scripture_fragments = [b'Johannes 19: 23-30',] # flash is sending in binary format, so keep this for the test
     titel_tekst = 'Welkom!'
     sub_titel_tekst = datum_tekst + u'\nVoorganger: ' + voorganger + u'\nOrganist: ' + organist
     uploaded_zipfilename = 'liedboek.zip'
@@ -68,7 +68,7 @@ def downloadresult():
         file_uuid = secure_filename(request.args.get('file_uuid', ''))
         if file_uuid:
             filename = '%s.pptx' % file_uuid
-        return send_file(path_or_file=os.path.join(application.config['UPLOAD_FOLDER'], filename), download_name='hervgemb_presentatie_%s.pptx' % date.today().strftime('%Y%m%d%H%M'), as_attachment=True)
+        return send_file(path_or_file=os.path.join(application.config['UPLOAD_FOLDER'], filename), download_name='hervgemb_presentatie_%s.pptx' % datetime.now().strftime('%Y%m%d%H%M'), as_attachment=True)
     except Exception as e:
         return str(e)
 
@@ -261,7 +261,7 @@ def process_progress(process_class_name):
 if __name__ == "__main__":
     print(f"PowerPoint generator {sw_ver}")
     start_cmdline()
-    # the web/flask version is started by running runserver.py
+    # the local / web/flask version is started by uwsgi --ini ./uwsgi_debug.ini
     '''arv = sys.argv[1:]
     if(len(arv)>0):
         if arv[0] == '-c':  # start command-line version

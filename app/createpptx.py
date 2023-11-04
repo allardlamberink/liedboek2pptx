@@ -46,7 +46,7 @@ class CreatePPTXProcess(Thread):
         self.datum_tekst = datum_tekst
         self.scripture_fragments = []
         for scripture_fragment in scripture_fragments:  #['Mattheus 5: 1-15', 'John 3: 16']
-            self.scripture_fragments.append(scripture_fragment) # TODO allard check of dit niet meer nodig is in Py3 met Mattheus....decode('utf-8')) --> niet in cmd line version, maar misschien wel in web-version
+            self.scripture_fragments.append(scripture_fragment.decode('utf-8')) # decoding necessary while Flask is sending string in binary format
             print(f"script frag = self.scriptime_fragments")
         self.titel_tekst = titel_tekst
         self.sub_titel_tekst = sub_titel_tekst #+ '\nVoorganger: ' + voorganger
