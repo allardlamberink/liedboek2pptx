@@ -19,7 +19,9 @@ APP FLOW
 
 enable debugging mode by setting environment variable:
 
- `export FLASK_ENV=development`
+  `export FLASK_ENV=development`
 
- `docker build -t liedboek2pptx .`
- `docker run -d --name liedboek2pptx_1 -p 8000:80 -p 5000:5000 liedboek2pptx`
+
+  `docker build -t liedboek2pptx .`
+
+  ```docker run -d --name liedboek2pptx_1 -p 8000:80 -p 5000:5000 liedboek2pptx```
