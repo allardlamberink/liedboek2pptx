@@ -13,8 +13,7 @@ import os
 import re
 from collections import OrderedDict
 
-# TODO move to settings
-church_name = "Hervormde Gemeente Beerzerveld"
+church_name = os.getenv("CHURCH_NAME")
 
 
 class CreatePPTXProcess(Thread):
@@ -180,7 +179,8 @@ class CreatePPTXProcess(Thread):
         # special collecte slide handling:
         if 'gaven' in dianame.lower():
             collecte_text = 'Collecte'
-            collecte_sub_text = 'diaconie\nNL96RABO0380934981\n\nkerkrentmeesters\nNL39RABO0366613278' # TODO move to settings
+            collecte_sub_text = os.getenv("CHURCH_BANK_DETAILS")
+            collecte_sub_text = collecte_sub_text.replace(r'\n', '\n')
             self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6)
         elif 'zegen' in dianame.lower():
             zegen_text = 'Zegenbede'

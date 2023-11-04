@@ -24,4 +24,7 @@ enable debugging mode by setting environment variable:
 
   `docker build -t liedboek2pptx .`
 
-  ```docker run -d --name liedboek2pptx_1 -p 8000:80 -p 5000:5000 liedboek2pptx```
+  ```docker run --env-file liedboek2pptx.env -d --name liedboek2pptx_01 -p 8000:80 liedboek2pptx```
+
+
+Manually copy liedboek2pptx.env and app/projectie-415-muziek-couplet-cropped.png to the webserver before executing docker build on the webserver. These files are excluded from the git repo because they contain sensitive information or are protected by copyright laws.

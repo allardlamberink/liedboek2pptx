@@ -4,24 +4,24 @@
     copyright (c) 2016-2023 by A.D. Lamberink        
 '''
 
-
-import sys
+from datetime import date, datetime, timedelta
 from flask import Flask, request, redirect, url_for, flash, render_template, make_response, jsonify, send_file
-from werkzeug.utils import secure_filename
 from threading import Thread
 from uuid import uuid4
-from datetime import date, timedelta, datetime
-import os
-import createpptx
+from werkzeug.utils import secure_filename
 import ast
+import createpptx
+import os
+import sys
+
 
 application = Flask(__name__)
 create_pptx_processes = {}
-sw_ver = '0.2'
+sw_ver = '0.3'
 
 ###################  command_line part ####################
 def start_cmdline():
-    # todo: read these parameters from the command-line or change this cmdline part of the app to a py.TEST
+    # TODO: read these parameters from the command-line or change this cmdline part of the app to a py.TEST
     voorganger = 'Ds. naam'
     organist = 'Organist naam'
     datum_tekst = 'vrijdag 14 april 2018'
@@ -88,13 +88,14 @@ def sortliturgie():
         song_couplets = cpp.song_couplets2arr(filenamelist)
         liturgielijst = []
         maanden = ['dummy', 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
-        next_sunday_date = (date.today() + timedelta( (6-date.today().weekday()) % 7 )).strftime("zondag {0} {1} %Y".format(date.today().day, maanden[date.today().month]))
+        next_sunday_dt = date.today() + timedelta( (6-date.today().weekday()) % 7 )
+        next_sunday_formatted = next_sunday_dt.strftime(f"zondag {next_sunday_dt.day} {maanden[next_sunday_dt.month]} %Y")
+
         for song, couplets in song_couplets.items():
-            #for couplet in couplets:  # todo: per couplet sorteren mogelijk maken...
+            #for couplet in couplets:  # TODO: per couplet sorteren mogelijk maken...
             coupletstr = ', '.join(couplets)
             liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
-        #liturgielijst = song_couplets   #{ 'title': 'allard', 'Age': 7 }
-        return render_template('sortliturgie.html', name='sortliturgie',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure, next_sunday_date=next_sunday_date)
+        return render_template('sortliturgie.html', name='sortliturgie',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure, next_sunday_date=next_sunday_formatted)
 
 
 #@app.route('/login', methods=['GET', 'POST'])
@@ -181,7 +182,7 @@ def process_start(process_class_name):
     # Dynamically import the class / module for the particular process
     # being started. This saves needing to import all possible
     # modules / classes.
-    # todo allard subdirectories maken:process_module_obj = __import__('%s.%s.%s' % ('test_progress_thread',
+    # TODO subdirectories maken:process_module_obj = __import__('%s.%s.%s' % ('test_progress_thread',
     #                                              'CreatePPTXProcess',
     #                                              process_module_name),
     #                                              fromlist=[process_class_name])
@@ -235,8 +236,8 @@ def process_progress(process_class_name):
     
     if not process_class_name in create_pptx_processes:
         create_pptx_processes[process_class_name] = {}
-    #print("allard key = {0}".format(key))
-    #print("allard process_class_name = {0}".format(process_class_name))
+    #print("debug key = {0}".format(key))
+    #print("debug process_class_name = {0}".format(process_class_name))
     if not key in create_pptx_processes[process_class_name]:
         return jsonify(error='Invalid process key.')
     

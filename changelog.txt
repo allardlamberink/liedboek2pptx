@@ -1,3 +1,13 @@
 20231103:
-- changed transparency of background in pptx template
+- updated documentation.
+- fixed transparency of background text in pptx template (previously overlapping right side).
+- upgraded codebase to Python3.10.6.
+- added collecte bank account details slide.
+- fixed scripture readings slide if more than 2 readings.
+- fixed date 04 June --> 4 June on frontpage and index page.
+- added churchname on frontpage and index page.
+- fixed Pslam / Lied naming bug (i.e. Psalm 23b was interpreted as Lied 23).
+- added "amen" slide.
+- added "have a nice day" slide.
+- change blessing slide.
 
