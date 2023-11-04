@@ -68,7 +68,7 @@ def downloadresult():
         file_uuid = secure_filename(request.args.get('file_uuid', ''))
         if file_uuid:
             filename = '%s.pptx' % file_uuid
-        return send_file(os.path.join(application.config['UPLOAD_FOLDER'], filename), attachment_filename='hervgemb_presentatie_%s.pptx' % file_uuid, as_attachment=True)
+        return send_file(path_or_file=os.path.join(application.config['UPLOAD_FOLDER'], filename), download_name='hervgemb_presentatie_%s.pptx' % date.today().strftime('%Y%m%d%H%M'), as_attachment=True)
     except Exception as e:
         return str(e)
 
