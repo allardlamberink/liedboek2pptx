@@ -8,3 +8,4 @@ ENV UWSGI_CHEAPER 0
 ENV UWSGI_PROCESSES 1
 
 COPY ./app /app
+RUN chmod -R 755 /app/static/
