@@ -1,7 +1,7 @@
 <!doctype html>
 <head>
 {% block head %}
-	<title>Hervgembeerzerveld powerpoint generator</title>
+	<title>Hervgembeerzerveld powerpoint generator {{ sw_ver|safe }}</title>
     {#{% block extra_css %}{% endblock extra_css %} #}
     <script type="text/javascript">var SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.2.0.min.js') }}"></script>

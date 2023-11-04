@@ -1,11 +1,9 @@
-''' "pptx-generator v0.1"        
-     initial development start date: 2016-06-26        
-     initial release date: 2017-04-09
-     copyright (c) 2016-2017 by A.D. Lamberink        
+''' pptx-generator
+    initial development start date: 2016-06-26
+    initial release date: 2017-04-09
+    copyright (c) 2016-2023 by A.D. Lamberink        
 '''
 
-# todo: toevoegen uitzondering voor lied 802, hierin wordt het refrein niet correct meegenomen
-# 2017-01-21: mail uit naar liedboek.nu met verzoek om verbetering
 
 import sys
 from flask import Flask, request, redirect, url_for, flash, render_template, make_response, jsonify, send_file
@@ -19,6 +17,7 @@ import ast
 
 application = Flask(__name__)
 create_pptx_processes = {}
+sw_ver = '0.2'
 
 ###################  command_line part ####################
 def start_cmdline():
@@ -26,16 +25,16 @@ def start_cmdline():
     voorganger = 'Ds. naam'
     organist = 'Organist naam'
     datum_tekst = 'vrijdag 14 april 2018'
+    #scripture_fragments = ['Johannes 19: 23-30','Mattheüs 3: 15-20']
     scripture_fragments = ['Johannes 19: 23-30',]
     titel_tekst = 'Welkom!'
     sub_titel_tekst = datum_tekst + u'\nVoorganger: ' + voorganger + u'\nOrganist: ' + organist
     uploaded_zipfilename = 'liedboek.zip'
     upload_path = application.config['UPLOAD_FOLDER']
     cpp = createpptx.CreatePPTXProcess(file_uuid='cmdlineversion')
-    liedvolgorde = [1,2,3]
+    liedvolgorde = ['23b','802']
     cpp.setparams(upload_path, uploaded_zipfilename, liedvolgorde, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpp.start()
-    #cpp.CreatePPTXProcess.create_ppt(zipfile, voorganger, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     return
 
 
@@ -89,13 +88,13 @@ def sortliturgie():
         song_couplets = cpp.song_couplets2arr(filenamelist)
         liturgielijst = []
         maanden = ['dummy', 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
-        next_sunday_date = (date.today() + timedelta( (6-date.today().weekday()) % 7 )).strftime("zondag %d {0} %Y".format(maanden[date.today().month]))
+        next_sunday_date = (date.today() + timedelta( (6-date.today().weekday()) % 7 )).strftime("zondag {0} {1} %Y".format(date.today().day, maanden[date.today().month]))
         for song, couplets in song_couplets.items():
             #for couplet in couplets:  # todo: per couplet sorteren mogelijk maken...
             coupletstr = ', '.join(couplets)
             liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
         #liturgielijst = song_couplets   #{ 'title': 'allard', 'Age': 7 }
-        return render_template('sortliturgie.html', name='test van Allard',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure, next_sunday_date=next_sunday_date)
+        return render_template('sortliturgie.html', name='sortliturgie',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure, next_sunday_date=next_sunday_date)
 
 
 #@app.route('/login', methods=['GET', 'POST'])
@@ -136,7 +135,7 @@ def upload_file():
             else:
                 flash('Invalid filetype (only .zip is allowed)')
 
-    return render_template('upload.html', introtekst='Upload liedboek.nu zip-bestand', errormsg=error)
+    return render_template('upload.html', introtekst='Upload liedboek.nu zip-bestand', sw_ver=sw_ver, errormsg=error)
 
 
 
@@ -260,6 +259,7 @@ def process_progress(process_class_name):
 
 ############################ entry point (main) ####################
 if __name__ == "__main__":
+    print(f"PowerPoint generator {sw_ver}")
     start_cmdline()
     # the web/flask version is started by running runserver.py
     '''arv = sys.argv[1:]
