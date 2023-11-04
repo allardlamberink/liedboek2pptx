@@ -79,9 +79,9 @@ class CreatePPTXProcess(Thread):
     # projectie-111-muziek-couplet-1-1.png
     # maar 1 couplet:
     # projectie-425-muziek-2.png
-    def sort_filenamelist(self, filenamelist, volgordelist):
+    def sort_filenamelist(self, filenamelist, liedvolgorde):
         sorted_filenamelist = []
-        for liednr in volgordelist:
+        for liednr in liedvolgorde:
             for filename in filenamelist:
                 if filename.startswith('projectie-%s-' % liednr):
                     sorted_filenamelist.append(filename)
@@ -254,18 +254,18 @@ class CreatePPTXProcess(Thread):
         return filenamelist
 
 
-    def create_ppt(self, uploaded_zipfilename, volgordelist, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
+    def create_ppt(self, uploaded_zipfilename, liedvolgorde, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         pptx_template_file = 'template.pptx'
         zip_obj = self.get_zip_obj(uploaded_zipfilename)
         filenamelist = self.get_filenamelist(zip_obj)
         
-        sorted_filenamelist = self.sort_filenamelist(filenamelist, volgordelist)
+        sorted_filenamelist = self.sort_filenamelist(filenamelist, liedvolgorde)
     
         prs = self.create_pptx(pptx_template_file)
         self.create_title_slide(prs, titel_tekst, sub_titel_tekst, church_name, 0)
     
         song_couplets = self.song_couplets2arr(sorted_filenamelist)
-        song_couplets_sorted = OrderedDict((k, song_couplets[k]) for k in volgordelist)
+        song_couplets_sorted = OrderedDict((k, song_couplets[k]) for k in liedvolgorde)
 
 
         self.create_index_slide(prs, song_couplets_sorted, scripture_fragments, datum_tekst)
@@ -314,6 +314,7 @@ class CreatePPTXProcess(Thread):
 
         file_without_ext_with_path = os.path.join(self.upload_path, self.key)
         full_filename_with_path = '%s.pptx' % file_without_ext_with_path
+        # cannot re-arrange / change order at this stage, slides need to be inserted in correct order
         prs.save(full_filename_with_path)
         print("Finished...")
         print("PowerPoint file saved at: {0}".format(full_filename_with_path))

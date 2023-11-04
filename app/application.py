@@ -211,9 +211,9 @@ def process_start(process_class_name):
     scripture_fragments = ast.literal_eval(request.args.get('scripture_fragments'))
     titel_tekst = request.args.get('titel_tekst')
     sub_titel_tekst = request.args.get('sub_titel_tekst')
-    volgordelist = ast.literal_eval(request.args.get('finalvolgorde'))
+    liedvolgorde = ast.literal_eval(request.args.get('finalvolgorde'))
     
-    cpx.setparams(application.config['UPLOAD_FOLDER'], uploaded_zipfilename, volgordelist, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
+    cpx.setparams(application.config['UPLOAD_FOLDER'], uploaded_zipfilename, liedvolgorde, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst)
     cpx.start()
     
     if not process_class_name in create_pptx_processes:
