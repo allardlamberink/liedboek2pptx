@@ -113,7 +113,7 @@ class CreatePPTXProcess(Thread):
         return prs
 
 
-    def create_title_slide(self, prs, titel_tekst, sub_titel_tekst, top_text, top_shift):
+    def create_title_slide(self, prs, titel_tekst, sub_titel_tekst, top_text, top_shift, left_shift=None, image_bytes=None, image_text=None):
         title_slide_layout = prs.slide_layouts[0]  # layout 0 = de startpagina
         slide = prs.slides.add_slide(title_slide_layout)
         title = slide.shapes.title
@@ -135,6 +135,19 @@ class CreatePPTXProcess(Thread):
             subtitle.top = title.top + title.height
             subtitle.width = prs.slide_width
             subtitle.height = orig_subtitle_height*2
+        if left_shift and left_shift > 0:
+            subtitle.left = int(prs.slide_width/left_shift)
+            subtitle.width = prs.slide_width - subtitle.left
+        if image_bytes:
+            left = Cm(1.1)
+            top = Cm(4.9)
+            image = io.BytesIO(image_bytes.getvalue())
+            pic = slide.shapes.add_picture(image, left, top)
+            pic.height=int(pic.height/3)
+            pic.width=int(pic.width/3)
+            if image_text:
+                it = slide.shapes.add_textbox(left, top+pic.height+Cm(0.1), pic.width, Cm(1.2))
+                it.text = image_text
 
 
     def create_song_slide(self, prs, song_title, song_img_data):
@@ -181,7 +194,17 @@ class CreatePPTXProcess(Thread):
             collecte_text = 'Collecte'
             collecte_sub_text = os.getenv("CHURCH_BANK_DETAILS")
             collecte_sub_text = collecte_sub_text.replace(r'\n', '\n')
-            self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6)
+
+
+            collecte_image_file = 'static/Scipio_QR_code.png'
+            collecte_img_text = "Scipio APP"
+            if os.path.exists(collecte_image_file):
+                collecte_img = Image.open(collecte_image_file)
+                collecte_img_bytes = io.BytesIO()
+                collecte_img.save(collecte_img_bytes, format='PNG', quality=100)
+                self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6, 8, collecte_img_bytes, collecte_img_text)
+            else:
+                self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6)
         elif 'zegen' in dianame.lower():
             zegen_text = 'Zegenbede'
             zegen_sub_text = 'antwoord met zingen \"Amen\" (Lied 415:3)'
@@ -280,7 +303,7 @@ class CreatePPTXProcess(Thread):
                     'lied3', 'Gebed om de opening\nvan het Woord', 'Kinderlied',
                     'Kinderen komen naar voren en\ngaan naar de kindernevendienst',
                     'schriftlezing', 'lied4', 'Verkondiging', 'lied5', 'Dankgebed',
-                    'Inzameling van de gaven', 'Kinderen komen terug van\nde kindernevendienst', 'lied6', 'Zegen', 'Amen', 'Wij wensen u een fijne voortzetting van de zondag']
+                    'Inzameling van de gaven', 'Kinderen komen terug van\nde kindernevendienst', 'lied6', 'Zegen', 'Amen', 'Goede week en graag tot ziens']
         standaard_avonddienst_layout = ['titel', 'liturgie', 'lied1', 'Stil gebed\n-\nVotum en Groet',
                         'lied2', 'Gebed om de opening van het Woord', 'schriftlezing',
                         'lied4', 'Verkondiging', 'lied5', 'Geloofsbelijdenis', 'lied6',
@@ -305,7 +328,7 @@ class CreatePPTXProcess(Thread):
                 #img = Image.open(song_img_data)
                 width, height = img.size
                 img2 = img.crop((0, 150 , width, height))  #origineel komt binnen als 1600x1200 (haal van de bovenkant 150 px af
-                # do not do any resizing here, but leave the original size and resizing using the height en width attributes of the shape (picture object), because this results in a sharper image
+                # do not do any resizing here, but leave the original size and resizing using the height en width attributes of the shape (picture object in the create_song_slide function), because this results in a sharper image
                 img3 = io.BytesIO()
                 img2.save(img3, format='PNG', quality=100)
     
