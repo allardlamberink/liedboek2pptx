@@ -1,3 +1,6 @@
+20250207:
+- update collecte template.
+
 20231103:
 - updated documentation.
 - fixed transparency of background text in pptx template (previously overlapping right side).
@@ -6,7 +9,7 @@
 - fixed scripture readings slide if more than 2 readings.
 - fixed date 04 June --> 4 June on frontpage and index page.
 - added churchname on frontpage and index page.
-- fixed Pslam / Lied naming bug (i.e. Psalm 23b was interpreted as Lied 23).
+- fixed Psalm / Lied naming bug (i.e. Psalm 23b was interpreted as Lied 23).
 - added "amen" slide.
 - added "have a nice day" slide.
 - change blessing slide.

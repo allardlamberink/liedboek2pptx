@@ -6,8 +6,8 @@ from time import sleep
 import zipfile
 import io
 from pptx import Presentation
-from pptx.util import Cm
-from pptx.enum.text import MSO_AUTO_SIZE,MSO_ANCHOR
+from pptx.util import Cm, Pt
+from pptx.enum.text import MSO_AUTO_SIZE,MSO_ANCHOR,PP_ALIGN
 from PIL import Image
 import os
 import re
@@ -113,7 +113,7 @@ class CreatePPTXProcess(Thread):
         return prs
 
 
-    def create_title_slide(self, prs, titel_tekst, sub_titel_tekst, top_text, top_shift, left_shift=None, image_bytes=None, image_text=None):
+    def create_title_slide(self, prs, titel_tekst, sub_titel_tekst, top_text, top_shift, left_shift=None, image_bytes=None, image_text=None, h_align=None):
         title_slide_layout = prs.slide_layouts[0]  # layout 0 = de startpagina
         slide = prs.slides.add_slide(title_slide_layout)
         title = slide.shapes.title
@@ -136,8 +136,18 @@ class CreatePPTXProcess(Thread):
             subtitle.width = prs.slide_width
             subtitle.height = orig_subtitle_height*2
         if left_shift and left_shift > 0:
+            title.left    = int(prs.slide_width/left_shift/8)
+            title.width   = prs.slide_width - title.left
             subtitle.left = int(prs.slide_width/left_shift)
             subtitle.width = prs.slide_width - subtitle.left
+
+        if h_align:
+            title.text_frame.paragraphs[0].alignment = h_align
+            for para in subtitle.text_frame.paragraphs:
+               para.alignment = h_align
+               for run in para.runs:
+                   run.font.size=Pt(18)
+
         if image_bytes:
             left = Cm(1.1)
             top = Cm(4.9)
@@ -202,7 +212,7 @@ class CreatePPTXProcess(Thread):
                 collecte_img = Image.open(collecte_image_file)
                 collecte_img_bytes = io.BytesIO()
                 collecte_img.save(collecte_img_bytes, format='PNG', quality=100)
-                self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6, 8, collecte_img_bytes, collecte_img_text)
+                self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6, 3, collecte_img_bytes, collecte_img_text, h_align=PP_ALIGN.LEFT)
             else:
                 self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6)
         elif 'zegen' in dianame.lower():
