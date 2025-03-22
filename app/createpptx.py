@@ -113,7 +113,7 @@ class CreatePPTXProcess(Thread):
         return prs
 
 
-    def create_title_slide(self, prs, titel_tekst, sub_titel_tekst, top_text, top_shift, left_shift=None, image_bytes=None, image_text=None, h_align=None):
+    def create_title_slide(self, prs, titel_tekst, sub_titel_tekst, top_text, top_shift, left_shift=None, image_bytes_1=None, image_text=None, image_bytes_2=None, h_align=None):
         title_slide_layout = prs.slide_layouts[0]  # layout 0 = de startpagina
         slide = prs.slides.add_slide(title_slide_layout)
         title = slide.shapes.title
@@ -148,16 +148,24 @@ class CreatePPTXProcess(Thread):
                for run in para.runs:
                    run.font.size=Pt(18)
 
-        if image_bytes:
+        if image_bytes_1:
             left = Cm(1.1)
             top = Cm(4.9)
-            image = io.BytesIO(image_bytes.getvalue())
-            pic = slide.shapes.add_picture(image, left, top)
+            image_1 = io.BytesIO(image_bytes_1.getvalue())
+            pic = slide.shapes.add_picture(image_1, left, top)
             pic.height=int(pic.height/3)
             pic.width=int(pic.width/3)
             if image_text:
                 it = slide.shapes.add_textbox(left, top+pic.height+Cm(0.1), pic.width, Cm(1.2))
                 it.text = image_text
+
+        if image_bytes_2:
+            left = Cm(8.55)
+            top = Cm(8.44)
+            image_2 = io.BytesIO(image_bytes_2.getvalue())
+            pic = slide.shapes.add_picture(image_2, left, top)
+            pic.height=int(pic.height/5)
+            pic.width=int(pic.width/5)
 
 
     def create_song_slide(self, prs, song_title, song_img_data):
@@ -206,13 +214,21 @@ class CreatePPTXProcess(Thread):
             collecte_sub_text = collecte_sub_text.replace(r'\n', '\n')
 
 
-            collecte_image_file = 'static/Scipio_QR_code.png'
-            collecte_img_text = "Scipio APP"
-            if os.path.exists(collecte_image_file):
-                collecte_img = Image.open(collecte_image_file)
-                collecte_img_bytes = io.BytesIO()
-                collecte_img.save(collecte_img_bytes, format='PNG', quality=100)
-                self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6, 3, collecte_img_bytes, collecte_img_text, h_align=PP_ALIGN.LEFT)
+            collecte_qr_image_file = 'static/Scipio_QR_code.png'
+            collecte_zak_image_file = 'static/collectezakken.jpg'
+            collecte_qr_img_text = "Scipio APP"
+
+            if os.path.exists(collecte_qr_image_file):
+                collecte_qr_img = Image.open(collecte_qr_image_file)
+                collecte_qr_img_bytes = io.BytesIO()
+                collecte_qr_img.save(collecte_qr_img_bytes, format='PNG', quality=100)
+
+                collecte_zak_img = Image.open(collecte_zak_image_file)
+                collecte_zak_img_bytes = io.BytesIO()
+                collecte_zak_img.save(collecte_zak_img_bytes, format='JPEG', quality=100)
+
+                self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6, 3, collecte_qr_img_bytes, collecte_qr_img_text, collecte_zak_img_bytes, h_align=PP_ALIGN.LEFT)
+
             else:
                 self.create_title_slide(prs, collecte_text, collecte_sub_text, church_name, 6)
         elif 'zegen' in dianame.lower():
