@@ -1,3 +1,8 @@
+20260301:
+- add mededelingen to PowerPoint template.
+- update default order of sheets in PowerPoint template.
+- change Ds. --> ds.
+
 20250207:
 - update collecte template.
 

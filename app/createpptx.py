@@ -137,7 +137,7 @@ class CreatePPTXProcess(Thread):
             subtitle.height = orig_subtitle_height*2
         if left_shift and left_shift > 0:
             title.left    = int(prs.slide_width/left_shift/8)
-            title.width   = prs.slide_width - title.left
+            title.width   = prs.slide_width - int(title.left*8)
             subtitle.left = int(prs.slide_width/left_shift)
             subtitle.width = prs.slide_width - subtitle.left
 
@@ -235,7 +235,6 @@ class CreatePPTXProcess(Thread):
             zegen_text = 'Zegenbede'
             zegen_sub_text = 'antwoord met zingen \"Amen\" (Lied 415:3)'
             self.create_title_slide(prs, zegen_text, zegen_sub_text, "", 0)
-
         elif 'amen' in dianame.lower():
             amen_song_file = 'projectie-415-muziek-couplet-cropped.png'
             if os.path.exists(amen_song_file):
@@ -246,6 +245,10 @@ class CreatePPTXProcess(Thread):
                 self.create_song_slide(prs, song_title, amen_song_img_bytes)
             else:
                 self.create_intermediate_slide(prs, 'last song img not found')
+        elif 'mededelingen' in dianame.lower():
+            announcement_text = 'Mededelingen'
+            announcement_sub_text = 'Tijdens het voorlezen van de mededelingen\nmag u blijven zitten\nBij het intochtslied gaan we staan.'
+            self.create_title_slide(prs, announcement_text, announcement_sub_text, "", 3)
         else:
             interim_slide_layout = prs.slide_layouts[3]  # layout 3 = intermediate_slide
             slide = prs.slides.add_slide(interim_slide_layout)
@@ -311,7 +314,7 @@ class CreatePPTXProcess(Thread):
         sorted_filenamelist = self.sort_filenamelist(filenamelist, liedvolgorde)
     
         prs = self.create_pptx(pptx_template_file)
-        self.create_title_slide(prs, titel_tekst, sub_titel_tekst, church_name, 0)
+        self.create_title_slide(prs, titel_tekst, sub_titel_tekst, church_name, 3)
     
         song_couplets = self.song_couplets2arr(sorted_filenamelist)
         song_couplets_sorted = OrderedDict((k, song_couplets[k]) for k in liedvolgorde)
@@ -324,13 +327,13 @@ class CreatePPTXProcess(Thread):
             self.create_scripture_slide(prs, scripture_title, u'<tekst van {0} hier plakken>'.format(scripture_fragment))
             idx += 1
     
-        standaard_ochtenddienst_layout = ['titel', 'liturgie', 'lied1',
+        standaard_ochtenddienst_layout = ['titel', 'liturgie', 'mededelingen', 'lied1',
                     'Stil gebed\n-\nVotum en Groet', 'lied2', 'Lezing van Gods gebod',
                     'lied3', 'Gebed om de opening\nvan het Woord', 'Kinderlied',
                     'Kinderen komen naar voren en\ngaan naar de kindernevendienst',
                     'schriftlezing', 'lied4', 'Verkondiging', 'lied5', 'Dankgebed',
                     'Inzameling van de gaven', 'Kinderen komen terug van\nde kindernevendienst', 'lied6', 'Zegen', 'Amen', 'Goede week en graag tot ziens']
-        standaard_avonddienst_layout = ['titel', 'liturgie', 'lied1', 'Stil gebed\n-\nVotum en Groet',
+        standaard_avonddienst_layout = ['titel', 'liturgie', 'mededelingen', 'lied1', 'Stil gebed\n-\nVotum en Groet',
                         'lied2', 'Gebed om de opening van het Woord', 'schriftlezing',
                         'lied4', 'Verkondiging', 'lied5', 'Geloofsbelijdenis', 'lied6',
                         'Gebed', 'Inzameling van de gaven', 'lied6', 'Zegen']
