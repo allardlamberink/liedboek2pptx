@@ -1,3 +1,6 @@
+20260730:
+- add support for new liedbundelsonline .zip file format (Liedboek + Hemelhoog).
+
 20260301:
 - add mededelingen to PowerPoint template.
 - update default order of sheets in PowerPoint template.

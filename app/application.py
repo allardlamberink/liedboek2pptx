@@ -85,16 +85,30 @@ def sortliturgie():
         zip_obj = cpp.get_zip_obj(uploaded_zipfilename_secure)
         filenamelist = cpp.get_filenamelist(zip_obj)
         zip_obj.close()
-        song_couplets = cpp.song_couplets2arr(filenamelist)
+        song_bundle_couplets = cpp.song_bundle_couplets2arr(filenamelist)
         liturgielijst = []
         maanden = ['dummy', 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
         next_sunday_dt = date.today() + timedelta( (6-date.today().weekday()) % 7 )
         next_sunday_formatted = next_sunday_dt.strftime(f"zondag {next_sunday_dt.day} {maanden[next_sunday_dt.month]} %Y")
 
-        for song, couplets in song_couplets.items():
-            #for couplet in couplets:  # TODO: per couplet sorteren mogelijk maken...
-            coupletstr = ', '.join(couplets)
-            liturgielijst.append([song, coupletstr])  #'{0}: {1}'.format(song, coupletstr))
+        concat_str = ', '
+        if 'hh' in song_bundle_couplets.keys():
+            for song_nr, couplets in song_bundle_couplets['hh'].items():
+                couplet_str = ''
+                for couplet_type in couplets:
+                    if couplet_type.isdigit(): # only add couplets, not refrein, brug etc..
+                        couplet_str += couplet_type + concat_str
+                couplet_str = couplet_str.removesuffix(concat_str)
+                liturgielijst.append(['Hemelhoog ' + song_nr, couplet_str])  #'{0}: {1}'.format(song, coupletstr))
+
+
+        couplet_str = ''
+
+        if 'lb' in song_bundle_couplets.keys():
+            for song_nr, couplets in song_bundle_couplets['lb'].items():
+                couplet_str = ', '.join(couplets)
+                liturgielijst.append(['Liedboek ' + song_nr, couplet_str])  #'{0}: {1}'.format(song, coupletstr))
+
         return render_template('sortliturgie.html', name='sortliturgie',liturgielijst=liturgielijst, uploaded_zipfilename=uploaded_zipfilename_secure, next_sunday_date=next_sunday_formatted)
 
 
@@ -155,7 +169,7 @@ def summary():
 
         for lied in liedlist:
             finalliturgielijst.append(lied)
-        
+
         uploaded_zipfilename = request.form['uploaded_zipfilename']
         voorganger = request.form['voorganger']
         organist = request.form['organist']

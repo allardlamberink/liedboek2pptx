@@ -14,6 +14,10 @@ import re
 from collections import OrderedDict
 
 church_name = os.getenv("CHURCH_NAME")
+lb_prefix = 'lb'  # liedboek prefix
+hh_prefix = 'hh'  # hemelhoog prefix
+lb_long_prefix = 'Liedboek '
+hh_long_prefix = 'Hemelhoog '
 
 
 class CreatePPTXProcess(Thread):
@@ -55,54 +59,119 @@ class CreatePPTXProcess(Thread):
 
     # filename structuur binnen zip_obj:
     # meerdere coupletten:
-    # projectie-111-muziek-couplet-1-1.png
-    # maar 1 couplet:
-    # projectie-425-muziek-2.png
-    def song_couplets2arr(self, filenamelist):
-        song_couplets = {}
+    #  0- 1-        2-  3-     4-      5-6-7.  8
+    # nl-lb-projectie-413-muziek-couplet-1-1.png
+    # arr[1] = bundel
+    # arr[3] = lied nr.
+    # arr[6] = couplet nr.
+    # arr[7] = the page of the coulet. In case a couplet only spans 1 page this is 1 otherwise the page nr.
+    #
+    def song_bundle_couplets2arr(self, filenamelist):
+        song_bundle_couplets = {}
         for filename in filenamelist:
             if filename[-3:] == 'png':
-                title_text_arr = filename.split('-')
-                if title_text_arr[3][0].isdigit() == False:  # meerdere coupletten
-                    if title_text_arr[1] in song_couplets:
-                        if title_text_arr[4] not in song_couplets[title_text_arr[1]]:
-                            song_couplets[title_text_arr[1]].append(title_text_arr[4])
+                splitted_filename_arr = filename.split('-')
+                if splitted_filename_arr[1] == lb_prefix: # handle Liedboek file format
+                    if lb_prefix not in song_bundle_couplets.keys():
+                        song_bundle_couplets[lb_prefix] = {}
                     else:
-                        song_couplets[title_text_arr[1]] = [title_text_arr[4]]
-                else:  # 1 couplet
-                    song_couplets[title_text_arr[1]] = ['1']
-        return song_couplets
+                        lied_nr = splitted_filename_arr[3]
+                        couplet_nr = splitted_filename_arr[6]
+                        if lied_nr not in song_bundle_couplets[lb_prefix].keys():
+                            song_bundle_couplets[lb_prefix][lied_nr] = []
+                        if couplet_nr not in song_bundle_couplets[lb_prefix][lied_nr]:
+                            song_bundle_couplets[lb_prefix][lied_nr].append(couplet_nr)
+                if splitted_filename_arr[1] == hh_prefix: # handle Hemelhoog file format different
+                    #example special hh 245
+                    # 0- 1-        2-  3-     4-5-       6-7.  8  
+                    #nl-hh-projectie-245-muziek-1-couplet1-1.png
+                    #nl-hh-projectie-245-muziek-3-refrein -1.png
+                    #nl-hh-projectie-245-muziek-3-refrein -2.png
+                    #nl-hh-projectie-245-muziek-4-couplet2-1.png
+                    # normale hh 416:1,2
+                    #fr-hh-projectie-416-muziek-1-couplet1-1.png
+                    #fr-hh-projectie-416-muziek-1-couplet1-2.png
+                    #nl-hh-projectie-416-muziek-2-couplet2-1.png
+                    #nl-hh-projectie-416-muziek-2-couplet2-2.png
+                    if hh_prefix not in song_bundle_couplets.keys():
+                        song_bundle_couplets[hh_prefix] = {}
+                    else:
+                        lied_nr = splitted_filename_arr[3]
+                        order_nr =  splitted_filename_arr[5]
+                        couplet_type = splitted_filename_arr[6]  #coupletX or refrein or bridge without nr.
+                        if not couplet_type.isalpha() and couplet_type.startswith('couplet'):
+                            couplet_nr = splitted_filename_arr[6][7:]  #extract couplet nr.
+                        else:
+                            couplet_nr = couplet_type + order_nr
+                       
+                        if lied_nr not in song_bundle_couplets[hh_prefix].keys():
+                            song_bundle_couplets[hh_prefix][lied_nr] = []
+                        if couplet_nr not in song_bundle_couplets[hh_prefix][lied_nr]:
+                            song_bundle_couplets[hh_prefix][lied_nr].append(couplet_nr)
+        return song_bundle_couplets
 
 
-    # filename structuur binnen zip_obj:
-    # meerdere coupletten:
-    # projectie-111-muziek-couplet-1-1.png
-    # maar 1 couplet:
-    # projectie-425-muziek-2.png
     def sort_filenamelist(self, filenamelist, liedvolgorde):
         sorted_filenamelist = []
         for liednr in liedvolgorde:
             for filename in filenamelist:
-                if filename.startswith('projectie-%s-' % liednr):
+                lb_matches = []
+                hh_matches = []
+
+                lb_regex = re.compile('[a-z]{2}-lb-projectie-%s-.*' % liednr.removeprefix(lb_long_prefix))
+                lb_matches = re.findall(lb_regex, filename)
+
+                if not lb_matches:
+                    hh_regex = re.compile('[a-z]{2}-hh-projectie-%s-.*' % liednr.removeprefix(hh_long_prefix))
+                    hh_matches = re.findall(hh_regex, filename)
+                        
+                if lb_matches or hh_matches:
                     sorted_filenamelist.append(filename)
         return sorted_filenamelist
 
 
     def get_song_title_text(self, filename, song_couplets):
-        title_text = 'Lied '
-        title_text_arr = filename.split('-')
-        if int(re.sub("[^0-9]", "", title_text_arr[1])) <= 150:
-            title_text = "Psalm "
-        title_text += title_text_arr[1] + ': '
-    
-        #print len(song_couplets[title_text_arr[1]])
-        for couplet in song_couplets[title_text_arr[1]]:
-            if len(song_couplets[title_text_arr[1]])==1:
-                title_text += ' [' + couplet + '] '
-            elif couplet == title_text_arr[4]:
-                title_text += ' [' + couplet + '] '
+        title_text = ""  
+        filename_arr = filename.split('-')
+        #filename: 'nl-lb-projectie-68-muziek-couplet-12-1.png'
+        #song_couplets: #
+        #{'lb68': ['12', '7'], 'lb885': ['1', '2'], 'lb315': ['1', '3'], 'lb72': ['1', '4', '7'], 'lb313': ['1', '2'], 'lb838': ['1', '4'], 'lb978': ['1', '3', '4']}
+        song_type = filename_arr[1] # lb or hh
+        song_num  = filename_arr[3] # liednummer
+        couplet_num = filename_arr[6]
+        song_type_with_num = song_type + song_num
+#
+
+        lb_regex = re.compile('lb[0-9]{1,4}')
+        hh_regex = re.compile('hh[0-9]{1,4}')
+        lb_matches = re.findall(lb_regex, song_type_with_num)
+        if lb_matches:
+            lb_nr = lb_matches[0].removeprefix(lb_prefix)
+            if int(lb_nr) <= 150:
+                title_text = "Psalm " + lb_nr
             else:
-                title_text += ' ' + couplet + ' '
+                title_text = "Liedboek " + lb_nr
+        
+        hh_matches = re.findall(hh_regex, song_type_with_num)
+        if hh_matches:
+            hh_nr = hh_matches[0].removeprefix(hh_prefix)
+            title_text = "Hemelhoog " + hh_nr
+            
+        title_text += ': '
+
+        if lb_matches:
+            for couplet in song_couplets[song_type_with_num]:
+                if len(song_couplets[song_type_with_num])==1:
+                    title_text += ' [' + couplet + '] '
+                elif couplet == couplet_num:
+                    title_text += ' [' + couplet + '] '
+                else:
+                    title_text += ' ' + couplet + ' '
+
+        if hh_matches:
+            for couplet in song_couplets[song_type_with_num]:
+                title_text += ' [' + couplet + '] '
+
         return title_text
 
 
@@ -278,14 +347,30 @@ class CreatePPTXProcess(Thread):
         #title.top = Cm(1.50)
     
         # set the liturgie:
+        # input format song_couplets = 
+        # {'hh122': ['1', '2', '3', '4'], 'lb245': ['1', '2', '3'], 'hh245': ['1', 'refrein3', '2', 'refrein6', 'brug7', 'refrein8'], 'lb413': ['1', '2', '3']}
         subtitle = slide.placeholders[1]
-        for song_num in song_couplets.keys():
-            title_text = "Lied "
-            if int(re.sub("[^0-9]", "", song_num)) <= 150:
-                title_text = "Psalm "
-            title_text += song_num + ': '
-            for c_idx in range(0, len(song_couplets[song_num])):
-                title_text += song_couplets[song_num][c_idx] + (', ' if  c_idx < len(song_couplets[song_num])-1 else '')
+        for song_type_num in song_couplets.keys():
+            #title_text = "Lied "
+            lb_regex = re.compile('lb[0-9]{1,4}')
+            hh_regex = re.compile('hh[0-9]{1,4}')
+            title_text = "" 
+            lb_matches = re.findall(lb_regex, song_type_num)
+            if lb_matches:
+                lb_nr = lb_matches[0].removeprefix(lb_prefix)
+                if int(lb_nr) <= 150:
+                    title_text = "Psalm " + lb_nr
+                else:
+                    title_text = "Liedboek " + lb_nr
+
+            hh_matches = re.findall(hh_regex, song_type_num)
+            if hh_matches:
+                hh_nr = hh_matches[0].removeprefix(hh_prefix)
+                title_text = "Hemelhoog " + hh_nr
+          
+            title_text += ': '
+            for c_idx in range(0, len(song_couplets[song_type_num])):
+                title_text += song_couplets[song_type_num][c_idx] + (', ' if  c_idx < len(song_couplets[song_type_num])-1 else '')
             subtitle.text += title_text + '\n'
         for idx in range(0, len(scripture_fragments)):
             scripture_title = u'\nSchriftlezing {0}: {1}'.format(idx+1 if len(scripture_fragments)>1 else "", scripture_fragments[idx])
@@ -306,21 +391,34 @@ class CreatePPTXProcess(Thread):
         return filenamelist
 
 
+    def create_sorted_liedlijst_for_index(self, liedvolgorde, song_bundle_couplets):
+        song_bundle_couplets_sorted = {}
+
+        for lied in liedvolgorde:
+            if lied.startswith(lb_long_prefix):
+                lb_lied_nr = lied.removeprefix(lb_long_prefix)
+                lb_couplets = song_bundle_couplets.get(lb_prefix).get(lb_lied_nr)
+                song_bundle_couplets_sorted[lb_prefix + lb_lied_nr] = lb_couplets
+            if lied.startswith(hh_long_prefix):
+                hh_lied_nr = lied.removeprefix(hh_long_prefix)
+                hh_couplets = song_bundle_couplets.get(hh_prefix).get(hh_lied_nr)
+                song_bundle_couplets_sorted[hh_prefix + hh_lied_nr] = hh_couplets
+        return song_bundle_couplets_sorted 
+
+
     def create_ppt(self, uploaded_zipfilename, liedvolgorde, voorganger, organist, datum_tekst, scripture_fragments, titel_tekst, sub_titel_tekst):
         pptx_template_file = 'template.pptx'
         zip_obj = self.get_zip_obj(uploaded_zipfilename)
         filenamelist = self.get_filenamelist(zip_obj)
-        
         sorted_filenamelist = self.sort_filenamelist(filenamelist, liedvolgorde)
+       
     
         prs = self.create_pptx(pptx_template_file)
         self.create_title_slide(prs, titel_tekst, sub_titel_tekst, church_name, 3)
-    
-        song_couplets = self.song_couplets2arr(sorted_filenamelist)
-        song_couplets_sorted = OrderedDict((k, song_couplets[k]) for k in liedvolgorde)
+        song_bundle_couplets = self.song_bundle_couplets2arr(sorted_filenamelist)
+        song_bundle_couplets_sorted = self.create_sorted_liedlijst_for_index(liedvolgorde, song_bundle_couplets)
 
-
-        self.create_index_slide(prs, song_couplets_sorted, scripture_fragments, datum_tekst)
+        self.create_index_slide(prs, song_bundle_couplets_sorted, scripture_fragments, datum_tekst)
         idx = 1
         for scripture_fragment in scripture_fragments:
             scripture_title = u'Schriftlezing {0}: {1}'.format(idx if len(scripture_fragments) > 1 else "", scripture_fragment)
@@ -347,7 +445,7 @@ class CreatePPTXProcess(Thread):
         for dianame in standaard_ochtenddienst_layout:
             self.create_intermediate_slide(prs, dianame)
     
-        #total_file_count = len(filenamelist)
+        total_file_count = len(filenamelist)
         for filename in sorted_filenamelist:
             if filename[-3:] == 'png':
                 print('processing img: {0}'.format(filename))
@@ -360,8 +458,7 @@ class CreatePPTXProcess(Thread):
                 # do not do any resizing here, but leave the original size and resizing using the height en width attributes of the shape (picture object in the create_song_slide function), because this results in a sharper image
                 img3 = io.BytesIO()
                 img2.save(img3, format='PNG', quality=100)
-    
-                song_title = self.get_song_title_text(filename, song_couplets_sorted)
+                song_title = self.get_song_title_text(filename, song_bundle_couplets_sorted)
                 self.create_song_slide(prs, song_title, img3)
 
         file_without_ext_with_path = os.path.join(self.upload_path, self.key)
