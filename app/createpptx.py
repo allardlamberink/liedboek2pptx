@@ -76,11 +76,16 @@ class CreatePPTXProcess(Thread):
                         song_bundle_couplets[lb_prefix] = {}
                     else:
                         lied_nr = splitted_filename_arr[3]
-                        couplet_nr = splitted_filename_arr[6]
-                        if lied_nr not in song_bundle_couplets[lb_prefix].keys():
+
+                        if len(splitted_filename_arr) > 5:
+                            couplet_nr = splitted_filename_arr[6]
+                            if lied_nr not in song_bundle_couplets[lb_prefix].keys():
+                                song_bundle_couplets[lb_prefix][lied_nr] = []
+                            if couplet_nr not in song_bundle_couplets[lb_prefix][lied_nr]:
+                                song_bundle_couplets[lb_prefix][lied_nr].append(couplet_nr)
+                        else:
                             song_bundle_couplets[lb_prefix][lied_nr] = []
-                        if couplet_nr not in song_bundle_couplets[lb_prefix][lied_nr]:
-                            song_bundle_couplets[lb_prefix][lied_nr].append(couplet_nr)
+
                 if splitted_filename_arr[1] == hh_prefix: # handle Hemelhoog file format different
                     #example special hh 245
                     # 0- 1-        2-  3-     4-5-       6-7.  8  
@@ -98,11 +103,14 @@ class CreatePPTXProcess(Thread):
                     else:
                         lied_nr = splitted_filename_arr[3]
                         order_nr =  splitted_filename_arr[5]
-                        couplet_type = splitted_filename_arr[6]  #coupletX or refrein or bridge without nr.
-                        if not couplet_type.isalpha() and couplet_type.startswith('couplet'):
-                            couplet_nr = splitted_filename_arr[6][7:]  #extract couplet nr.
+                        if len(splitted_filename_arr) > 6:
+                            couplet_type = splitted_filename_arr[6]  #coupletX or refrein or bridge without nr.
+                            if not couplet_type.isalpha() and couplet_type.startswith('couplet'):
+                                couplet_nr = splitted_filename_arr[6][7:]  #extract couplet nr.
+                            else:
+                                couplet_nr = couplet_type + order_nr
                         else:
-                            couplet_nr = couplet_type + order_nr
+                            couplet_nr = '1'
                        
                         if lied_nr not in song_bundle_couplets[hh_prefix].keys():
                             song_bundle_couplets[hh_prefix][lied_nr] = []
@@ -138,7 +146,10 @@ class CreatePPTXProcess(Thread):
         #{'lb68': ['12', '7'], 'lb885': ['1', '2'], 'lb315': ['1', '3'], 'lb72': ['1', '4', '7'], 'lb313': ['1', '2'], 'lb838': ['1', '4'], 'lb978': ['1', '3', '4']}
         song_type = filename_arr[1] # lb or hh
         song_num  = filename_arr[3] # liednummer
-        couplet_num = filename_arr[6]
+        if len(filename_arr) > 6:
+            couplet_num = filename_arr[6]
+        else:
+            couplet_num = '1'  
         song_type_with_num = song_type + song_num
 #
 
